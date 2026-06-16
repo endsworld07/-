@@ -1,11 +1,11 @@
 import streamlit as st
 from datetime import datetime
 
-# 設定網頁標題與排版佈局
+# 🟢 還原：分頁圖標改回房子 🏢
 st.set_page_config(page_title="桃園市觀音生命紀念園區收費判別系統", page_icon="🏢", layout="centered")
 
 # ==========================================
-# 🎨 進階網頁 CSS 視覺優化區（字體清晰修正版）
+# 🎨 進階網頁 CSS 視覺優化區
 # ==========================================
 st.markdown("""
     <style>
@@ -14,41 +14,66 @@ st.markdown("""
         background-color: #F8F9FA;
     }
     
-    /* 標題與內文主色調 */
+    /* 核心中央白色護眼區塊 */
+    .block-container {
+        background-color: #FFFFFF !important;
+        padding: 35px 45px !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+        margin-top: 20px !important;
+    }
+    
+    /* 強制所有輸入框、打勾項目的標籤文字為【深黑色】 */
+    .stWidgetLabel p, .stCheckbox p, p {
+        color: #111111 !important;
+        font-weight: 600 !important;
+        font-size: 14.5px !important;
+    }
+    
+    /* 主標題與副標題 */
     h1 {
         color: #1E3D59 !important;
         font-weight: 800 !important;
         letter-spacing: 0.5px;
+        margin-bottom: 5px !important;
     }
+    .stCaption {
+        color: #666666 !important;
+        font-size: 14px !important;
+    }
+    
+    /* 段落大標題 */
     h2 {
         color: #1E3D59 !important;
-        font-size: 20px !important;
+        font-size: 21px !important;
+        font-weight: 700 !important;
         border-bottom: 2px solid #1E3D59;
         padding-bottom: 6px;
-        margin-top: 25px !important;
+        margin-top: 30px !important;
+        margin-bottom: 15px !important;
     }
     
-    /* 核心按鈕視覺強制優化：確保字體為絕對醒目的【純黑色】 */
+    /* 核心按鈕：高質感深藍、粗黑字體、黃金圓角 */
     div.stButton > button:first-child {
-        background-color: #D6E4F0 !important; /* 改為較淺的藍灰色背景 */
-        color: #000000 !important;          /* 🌟 強制設定字體為絕對醒目的【純黑色】 */
-        font-size: 19px !important;          /* 字體再放大一點 */
-        font-weight: 900 !important;          /* 字體加到最粗 */
+        background-color: #D6E4F0 !important;
+        color: #000000 !important;
+        font-size: 19px !important;
+        font-weight: 900 !important;
         padding: 12px 24px !important;
         border-radius: 8px !important;
-        border: 2px solid #1E3D59 !important; /* 加上深藍色邊框強化視覺 */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+        border: 2px solid #1E3D59 !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
         transition: all 0.3s ease !important;
+        margin-top: 15px !important;
     }
     
-    /* 滑鼠移過去按鈕時的反饋 */
     div.stButton > button:first-child:hover {
-        background-color: #B6C9DB !important; /* 顏色微微變深 */
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
-        color: #000000 !important;            /* 保持純黑色 */
+        background-color: #B6C9DB !important;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12) !important;
+        color: #000000 !important;
     }
     
-    /* 輸入框聚焦時的邊框顏色 */
+    /* 輸入框聚焦提示線 */
     .stTextInput div div input:focus {
         border-color: #1E3D59 !important;
         box-shadow: 0 0 0 1px #1E3D59 !important;
@@ -76,6 +101,7 @@ def calculate_age(birth_str, death_str):
 # ==========================================
 # 1. 填寫亡者基本資料
 # ==========================================
+# 🟢 還原：網頁大標題改回經典房子 🏢
 st.title("🏢 桃園市觀音生命紀念園區收費判別系統")
 st.caption("版本：1150616 最新修正法規公告版")
 st.write("---")
@@ -92,9 +118,9 @@ with col_vil:
 
 col1, col2 = st.columns(2)
 with col1:
-    birth_str = st.text_input("亡者出生年月日 (8碼數字)", placeholder="範例：19500520")
+    birth_str = st.text_input("亡者出生年月日", placeholder="如：19500520")
 with col2:
-    death_str = st.text_input("亡者死亡年月日 (8碼數字)", placeholder="範例：20260615")
+    death_str = st.text_input("亡者死亡年月日", placeholder="如：20260615")
 
 # 綜合判定年齡與設籍狀態
 age, is_under_one = calculate_age(birth_str, death_str)
