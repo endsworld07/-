@@ -5,16 +5,16 @@ from datetime import datetime
 st.set_page_config(page_title="桃園市觀音生命紀念園區收費判別系統", page_icon="🏢", layout="centered")
 
 # ==========================================
-# 🎨 進階網頁 CSS 視覺優化區
+# 🎨 進階網頁 CSS 視覺優化區（字體清晰修正版）
 # ==========================================
 st.markdown("""
     <style>
-    /* 調整網頁整體底色，降低死白刺眼感 */
+    /* 調整網頁整體底色 */
     .stApp {
         background-color: #F8F9FA;
     }
     
-    /* 標題與內文主色調優化 */
+    /* 標題與內文主色調 */
     h1 {
         color: #1E3D59 !important;
         font-weight: 800 !important;
@@ -28,27 +28,27 @@ st.markdown("""
         margin-top: 25px !important;
     }
     
-    /* 核心按鈕視覺強制優化：改為高質感深藍、放大加粗、圓角、動態陰影 */
+    /* 核心按鈕視覺強制優化：確保字體為絕對醒目的【純黑色】 */
     div.stButton > button:first-child {
-        background-color: #1E3D59 !important;
-        color: #FFFFFF !important;
-        font-size: 18px !important;
-        font-weight: bold !important;
+        background-color: #D6E4F0 !important; /* 改為較淺的藍灰色背景 */
+        color: #000000 !important;          /* 🌟 強制設定字體為絕對醒目的【純黑色】 */
+        font-size: 19px !important;          /* 字體再放大一點 */
+        font-weight: 900 !important;          /* 字體加到最粗 */
         padding: 12px 24px !important;
         border-radius: 8px !important;
-        border: none !important;
-        box-shadow: 0 4px 6px rgba(30, 61, 89, 0.15) !important;
+        border: 2px solid #1E3D59 !important; /* 加上深藍色邊框強化視覺 */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
         transition: all 0.3s ease !important;
     }
     
-    /* 滑鼠移過去按鈕時的精品級動態反饋 */
+    /* 滑鼠移過去按鈕時的反饋 */
     div.stButton > button:first-child:hover {
-        background-color: #173047 !important;
-        box-shadow: 0 6px 12px rgba(30, 61, 89, 0.3) !important;
-        transform: translateY(-1px);
+        background-color: #B6C9DB !important; /* 顏色微微變深 */
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+        color: #000000 !important;            /* 保持純黑色 */
     }
     
-    /* 輸入框聚焦時的邊框顏色優化 */
+    /* 輸入框聚焦時的邊框顏色 */
     .stTextInput div div input:focus {
         border-color: #1E3D59 !important;
         box-shadow: 0 0 0 1px #1E3D59 !important;
@@ -253,4 +253,4 @@ if st.button("🔍 開始自動判別收費標準", use_container_width=True):
             
             else:
                 st.error("🚨 常態外縣市價")
-                st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項**（不符合任何減免與比照市民資格之外縣市亡者，依基本費率之3倍計費）。")
+                st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項**（不符合 any 減免與比照市民資格之外縣市亡者，依基本費率之3倍計費）。")
