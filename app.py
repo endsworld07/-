@@ -98,27 +98,46 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 核心邏輯運算區
+# 🌟 核心邏輯運算區（升級：嚴格固定7碼民國年換算引擎）
 # ==========================================
-def calculate_age(birth_str, death_str):
+def parse_roc_date_strict7(roc_str):
+    """嚴格將7碼民國年純數字字串轉換為西元 datetime 物件"""
+    roc_str = roc_str.strip()
+    if not roc_str.isdigit() or len(roc_str) != 7:
+        return None
+        
     try:
-        if len(birth_str.strip()) != 8 or len(death_str.strip()) != 8:
-            return None, None
-        birth_date = datetime.strptime(birth_str.strip(), "%Y%m%d")
-        death_date = datetime.strptime(death_str.strip(), "%Y%m%d")
+        # 🟢 修正：嚴格固定前3碼為年，第4-5碼為月，第6-7碼為日
+        roc_year = int(roc_str[0:3])
+        month = int(roc_str[3:5])
+        day = int(roc_str[5:7])
+        
+        ad_year = roc_year + 1911
+        return datetime(ad_year, month, day)
+    except ValueError:
+        return None
+
+def calculate_age_roc(birth_roc_str, death_roc_str):
+    birth_date = parse_roc_date_strict7(birth_roc_str)
+    death_date = parse_roc_date_strict7(death_roc_str)
+    
+    if birth_date is None or death_date is None:
+        return None, None
+        
+    try:
         age = death_date.year - birth_date.year
         if (death_date.month, death_date.day) < (birth_date.month, birth_date.day):
             age -= 1
         is_under_one_year = (death_date - birth_date).days < 365
         return age, is_under_one_year
-    except ValueError:
+    except Exception:
         return None, None
 
 # ==========================================
 # 1. 填寫亡者基本資料
 # ==========================================
 st.title("🏢 桃園市觀音生命紀念園區收費判別系統")
-st.caption("版本：1150616 最新修正法規公告版")
+st.caption("版本：1150616 最新修正法規公告版 (統一民國7碼版)")
 st.write("---")
 
 st.header("1. 檢查亡者戶籍等相關資料")
@@ -133,12 +152,14 @@ with col_vil:
 
 col1, col2 = st.columns(2)
 with col1:
-    birth_str = st.text_input("亡者出生年月日", placeholder="如：19500520")
+    # 🟢 修正：提示字統一改為 7 碼規範範例
+    birth_str = st.text_input("亡者出生年月日 (民國7碼)", placeholder="如：0390520")
 with col2:
-    death_str = st.text_input("亡者死亡年月日", placeholder="如：20260615")
+    # 🟢 修正：提示字統一改為 7 碼規範範例
+    death_str = st.text_input("亡者死亡年月日 (民國7碼)", placeholder="如：1150615")
 
-# 綜合判定年齡與設籍狀態
-age, is_under_one = calculate_age(birth_str, death_str)
+# 綜合判定年齡與設籍狀態（採用民國年全新引擎）
+age, is_under_one = calculate_age_roc(birth_str, death_str)
 is_ty_city = "桃園" in city if city else False
 
 # ==========================================
@@ -164,7 +185,6 @@ if age is not None and is_under_one:
     with col_pvil:
         parent_village = st.text_input("法定代理人設籍里", placeholder="如：大堀里")
 
-    # 交叉智慧判定：如果是未設籍/外縣市嬰兒，但父母設籍桃園市，自動導入「家屬設籍桃園滿1年」或「桃園出生未設籍」審查
     if "桃園" in parent_city:
         auto_flag_baby_born = True
         st.success("✨ 系統自動辨識：亡者為未滿一歲嬰兒，因法定代理人戶籍在桃園市，已自動導入桃園市民優待基準審查。")
@@ -204,7 +224,7 @@ if st.button("🔍 開始自動判別收費標準", use_container_width=True):
         st.error("❌ 錯誤：請務必填寫完整縣市、行政區、里、出生與死亡年月日！")
     else:
         if age is None:
-            st.error("❌ 錯誤：日期格式不正確，請精準輸入 8 位數純數字（範例：19500101）。")
+            st.error("❌ 錯誤：日期格式不正確，請精準輸入『7碼純數字』。民國99年以前出生請於前方補0（例如：民國39年5月20日請輸入 0390520）。")
         else:
             st.info(f"💡 系統自動核算：亡者死亡時精確年齡為 **{age}** 歲" + (" (⚠ 未滿一歲嬰兒)" if is_under_one else ""))
             
@@ -224,12 +244,10 @@ if st.button("🔍 開始自動判別收費標準", use_container_width=True):
                         parent_detected_village = v
                         break
 
-            # 判定嬰兒家屬特定里民升格
             is_baby_local_discount = False
             if is_under_one and "桃園" in parent_city and parent_detected_village is not None:
                 is_baby_local_discount = True
 
-            # 綜合判定是否符合桃園市民基本路線
             is_ty = is_ty_city or detected_village is not None or auto_flag_baby_born or is_baby_local_discount
 
             # ==========================================
@@ -249,7 +267,7 @@ if st.button("🔍 開始自動判別收費標準", use_container_width=True):
                 elif is_no_name:
                     st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第4款**")
                 elif is_no_owner:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第5款**")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項**第5款")
                 elif is_tower_damaged:
                     st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第6款**")
                 elif is_body_donation:
@@ -267,7 +285,7 @@ if st.button("🔍 開始自動判別收費標準", use_container_width=True):
                     if is_under_one:
                         if "桃園" in parent_city and parent_detected_village is not None:
                             st.success("💰 市民價打 5 折！")
-                            st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第1款但書**")
+                            st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第1款邊但書**")
                         else:
                             st.warning("🟢 常態市民價（1 倍基準價）")
                             st.markdown("說明：雖本人設籍特定里，但因其法定代理人戶籍未符合同條款但書連續設籍滿一年之規定，故不適用5折優惠，回歸常態市民價。")
@@ -284,12 +302,10 @@ if st.button("🔍 開始自動判別收費標準", use_container_width=True):
             
             elif is_buried_5y or auto_flag_baby_born or is_mutual or is_applicant_ty or is_ty_city:
                 st.success("🟢 常態市民價（1 倍基準價）")
-                
-                # 🌟 核心修正：外縣市嬰兒、但父母是桃園人，精確導入第5款（家屬設籍滿1年），絕不張冠李戴變更法條字眼！
                 if auto_flag_baby_born and not is_ty_city:
                     st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項第5款**")
                 elif is_buried_5y and not is_ty_city:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項第4款**")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項**第4款")
                 elif is_mutual and not is_ty_city:
                     st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項第3款**")
                 elif is_applicant_ty and not is_ty_city:
