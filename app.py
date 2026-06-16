@@ -1,10 +1,10 @@
 import streamlit as st
 from datetime import datetime
 
-st.set_page_config(page_title="桃園市納骨塔收費標準判別系統", page_icon="🏢", layout="centered")
+st.set_page_config(page_title="桃園市觀音生命紀念園區收費判別系統", page_icon="🏢", layout="centered")
 
-st.title("🏢 桃園市納骨塔收費標準自動判別系統")
-st.caption("版本：115年最新修正公告法規 - 臨櫃口語問話優化版")
+st.title("🏢 桃園市觀音生命紀念園區收費判別系統")
+st.caption("版本：1150616 最新修正法規公告版")
 st.write("---")
 
 # ==========================================
@@ -25,7 +25,7 @@ def calculate_age(birth_str, death_str):
         return None, None
 
 # ==========================================
-# 1. 填寫亡者基本資料（嚴格依需求排序）
+# 1. 填寫亡者基本資料
 # ==========================================
 st.header("1. 填寫亡者基本資料")
 
@@ -38,7 +38,7 @@ with col1:
 with col2:
     death_str = st.text_input("亡者死亡年月日 (8碼數字)", placeholder="範例：20260615")
 
-# 判定年齡與外縣市狀態，作為動態顯示的依據
+# 判定年齡與外縣市狀態
 age, is_under_one = calculate_age(birth_str, death_str)
 is_ty_city = "桃園" in city if city else False
 
@@ -49,7 +49,7 @@ parent_city = ""
 parent_village = ""
 if age is not None and is_under_one:
     st.write("---")
-    st.error("👶 系統偵測：亡者為【未滿一歲嬰兒】，依規定需加審法定代理人戶籍但書！")
+    st.error("👶 系統偵測：亡者為【未滿一歲嬰兒】，依規定需加審法定代理人戶籍設籍條件！")
     st.subheader("🍼 請填寫法定代理人資料")
     col3, col4 = st.columns(2)
     with col3:
@@ -60,7 +60,7 @@ if age is not None and is_under_one:
 st.write("---")
 
 # ==========================================
-# 3. 勾選符合之特殊減免條件（不分類大雜燴、拆分無主墳無名屍）
+# 3. 勾選符合之特殊減免條件（不分類、拆分無主墳無名屍）
 # ==========================================
 st.header("2. 勾選符合之特殊減免條件")
 st.caption("💡 依法規『多項優待應擇一申請』，若多選系統會自動挑選最優惠（免費）項目。")
@@ -164,7 +164,7 @@ if st.button("🔍 開始自動判別收費標準", type="primary", use_containe
                             st.markdown(f"**【原因依據】**：亡者雖為特定里之未滿一歲嬰兒，但系統比對其法定代理人戶籍（{parent_city}{parent_village}）並不符合存放設施所在地特定里民滿一年之規定，故不符合5折優惠，回歸常態市民價。")
                     else:
                         st.success("🎉 【判定結果】：減收 50%（市民價打 5 折）")
-                        st.markdown(f"**【原因依據】**：區里自動偵測符合在地特定里民（{detected_village}里）之優待（第5條第2項第1款）。")
+                        st.markdown(f"****原因依據****：區里自動偵測符合在地特定里民（{detected_village}里）之優待（第5條第2項第1款）。")
                 elif is_ty_project_no_bonus:
                     st.success("🎉 【判定結果】：減收 50%（市民價打 5 折）")
                     st.markdown("**【原因依據】**：符合本市工程遷葬未領獎勵金之減免（第5條第2項第2款）。")
