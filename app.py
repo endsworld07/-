@@ -37,6 +37,15 @@ st.markdown("""
         border: 1px solid #CCCCCC !important;
     }
     
+    /* 強制下方「勾選方塊的格子」背景為【純白色】 */
+    .stCheckbox div[data-testid="stMarkdownContainer"]::before {
+        background-color: #FFFFFF !important;
+    }
+    div[data-testid="stCheckbox"] > label > div:first-child {
+        background-color: #FFFFFF !important;
+        border: 1px solid #CCCCCC !important;
+    }
+    
     /* 主標題與副標題 */
     h1 {
         color: #1E3D59 !important;
@@ -155,9 +164,10 @@ if age is not None and is_under_one:
     with col_pvil:
         parent_village = st.text_input("法定代理人設籍里", placeholder="如：大堀里")
 
-    if (is_baby_no_registry or not is_ty_city) and "桃園" in parent_city:
+    # 交叉智慧判定：如果是未設籍/外縣市嬰兒，但父母設籍桃園市，自動導入「家屬設籍桃園滿1年」或「桃園出生未設籍」審查
+    if "桃園" in parent_city:
         auto_flag_baby_born = True
-        st.success("✨ 系統自動辨識：亡者為未設籍或外縣市嬰兒，但父母戶籍在桃園市，已自動導入「桃園市出生且未設籍前死亡嬰兒」優待標準。")
+        st.success("✨ 系統自動辨識：亡者為未滿一歲嬰兒，因法定代理人戶籍在桃園市，已自動導入桃園市民優待基準審查。")
 
 st.write("---")
 
@@ -169,11 +179,10 @@ st.caption("💡 依法規『多項優待應擇一申請』，若多選系統會
 
 is_diverse = st.checkbox("選擇使用「多元葬法專區」（如樹葬、灑葬等環保葬）")
 is_low_income = st.checkbox("亡者為各縣市列冊之「低收入戶」或「中低收入戶」")
-# 🟢 這裡已修正引號錯誤：
 is_hero = st.checkbox("亡者為軍公教、民防、義警消「因公殉職」人員")
 is_no_owner = st.checkbox("亡者身分確認為「無主墳墓」")
 is_no_name = st.checkbox("亡者身分確認為「無名屍體」（且經查明確無財產者）")
-is_tower_damaged = st.checkbox("原存放納骨塔設施更新或毀損無法使用")
+is_tower_damaged = st.checkbox("原存放桃園市公立納骨塔因更新或毀損無法繼續使用")
 is_body_donation = st.checkbox("大體捐贈")
 
 is_ty_project_5y = st.checkbox("同時符合「因桃園市工程遷葬」且「埋葬桃園市公墓 5 年以上」")
@@ -215,75 +224,79 @@ if st.button("🔍 開始自動判別收費標準", use_container_width=True):
                         parent_detected_village = v
                         break
 
+            # 判定嬰兒家屬特定里民升格
             is_baby_local_discount = False
             if is_under_one and "桃園" in parent_city and parent_detected_village is not None:
                 is_baby_local_discount = True
 
+            # 綜合判定是否符合桃園市民基本路線
             is_ty = is_ty_city or detected_village is not None or auto_flag_baby_born or is_baby_local_discount
 
             # ==========================================
-            # 判斷邏輯核心（從優攔截流、精確法條版）
+            # 判斷邏輯核心（從優攔截流、100% 原始法條還原版）
             # ==========================================
             if is_diverse or is_low_income or is_hero or is_no_owner or is_no_name or is_tower_damaged or is_body_donation or (is_ty and age >= 100):
                 st.success("🎉 費用全免！")
                 st.warning("💡 提示：符合「費用全免」資格的使用者，其塔位使用位置由管理機關指定。若家屬想挑選其他特定位置，可補足差額後使用其他位置。")
                 if is_diverse:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第3項**（使用多元葬法專區免收費用）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第3項**")
                 elif is_low_income:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項**第1款（低收入戶、中低收入戶免收費用）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第1款**")
                 elif is_hero:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項**第2款（因公殉職人員免收費用）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第2款**")
                 elif age >= 100:
-                    st.markdown(f"**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項**第3款（桃園市籍百歲以上人瑞免收費用）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第3款**")
                 elif is_no_name:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項**第4款（設籍桃園市之無名屍體經查明確無財產者免收費用）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第4款**")
                 elif is_no_owner:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項**第5款（桃園市轄區內收容之無主墳墓起掘骨灰骸免收費用）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第5款**")
                 elif is_tower_damaged:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項**第6款（原存放納骨塔設施更新或毀損無法使用免收費用）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第6款**")
                 elif is_body_donation:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項**第7款（大體捐贈免收費用）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第1項第7款**")
             
             elif is_ty_project_5y:
                 st.success("🔥 特惠：直接比照市民價，再打 5 折！")
-                st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第2項**（同時符合第4條第1項第4款及第5款之複合優待）。")
+                st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第2項**")
             
             elif detected_village is not None or is_baby_local_discount or is_ty_project_no_bonus:
                 if is_baby_local_discount:
                     st.success("💰 市民價打 5 折！")
-                    st.markdown(f"**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第1款但書**（未滿一歲嬰兒，其父母/法定代理人戶籍符合存放設施所在地特定里民連續設籍滿一年，減收50%）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第1款但書**")
                 elif detected_village is not None:
                     if is_under_one:
                         if "桃園" in parent_city and parent_detected_village is not None:
                             st.success("💰 市民價打 5 折！")
-                            st.markdown(f"**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第1款但書**（未滿一歲嬰兒，設籍特定里且父母亦連續設籍滿一年，減收50%）。")
+                            st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第1款但書**")
                         else:
                             st.warning("🟢 常態市民價（1 倍基準價）")
-                            st.markdown(f"**依據**：雖本人設籍特定里，但因父母（法定代理人）戶籍未在特定里連續設籍滿一年，不符第5條第2項第1款但書規定，回歸常態市民價。")
+                            st.markdown("說明：雖本人設籍特定里，但因其法定代理人戶籍未符合同條款但書連續設籍滿一年之規定，故不適用5折優惠，回歸常態市民價。")
                     else:
                         st.success("💰 市民價打 5 折！")
-                        st.markdown(f"**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第1款**（設籍存放設施所在地特定里民，減收50%）。")
+                        st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第1款**")
                 else:
                     st.success("💰 市民價打 5 折！")
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第2款**（屬於桃園市工程遷葬且未領取加發獎勵金者，減收50%）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第2項第2款**")
             
             elif is_self_dig:
                 st.success("💰 市民價打 9 折！（減免上限一萬元）")
-                st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第3項**（屬於桃園市列管禁葬公墓自行起掘移入者，減收10%，最高減免一萬元）。")
+                st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第5條第3項**")
             
             elif is_buried_5y or auto_flag_baby_born or is_mutual or is_applicant_ty or is_ty_city:
                 st.success("🟢 常態市民價（1 倍基準價）")
-                if auto_flag_baby_born:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項第2款**（在桃園市出生，且於未設戶籍前死亡之嬰兒，比照桃園市民基準收費）。")
+                
+                # 🌟 核心修正：外縣市嬰兒、但父母是桃園人，精確導入第5款（家屬設籍滿1年），絕不張冠李戴變更法條字眼！
+                if auto_flag_baby_born and not is_ty_city:
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項第5款**")
                 elif is_buried_5y and not is_ty_city:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項**第4款（外縣市亡者已埋葬在桃園市公私立墳墓5年以上或71年以前已埋葬，比照桃園市民基準收費）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項第4款**")
                 elif is_mutual and not is_ty_city:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項第3款**（原籍地納骨塔與桃園市有公告互惠合作，比照桃園市民基準收費）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項第3款**")
                 elif is_applicant_ty and not is_ty_city:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項**第5款（申請人為配偶/直系血親且連續設籍桃園滿1年，比照桃園市民基準收費）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項第5款**")
                 else:
-                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第3條附表**（正常設籍桃園市之市民，依常態市民基準價收費）。")
+                    st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第3條附表**")
             
             else:
                 st.error("🚨 常態外縣市價")
-                st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項**（不符合 any 減免與比照市民資格之外縣市亡者，依基本費率之3倍計費）。")
+                st.markdown("**依據**：桃園市公立殯葬設施使用收費標準 **第4條第1項**")
