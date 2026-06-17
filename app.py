@@ -130,7 +130,7 @@ def calculate_age_roc(birth_roc_str, death_roc_str):
 # 1. 填寫亡者基本資料
 # ==========================================
 st.title("🏢 桃園市觀音生命紀念園區收費判別系統")
-st.caption("版本：1150617 智慧即時防呆暨法條完全還原公告版")
+st.caption("版本：1150617 公告版")
 st.write("---")
 
 st.header("1. 檢查亡者戶籍等相關資料")
