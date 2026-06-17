@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime
 
 # 設定網頁標題與排版佈局
-st.set_page_config(page_title="桃園市觀音生命紀念園區收費標準", page_icon="🏢", layout="centered")
+st.set_page_config(page_title="桃園市觀音生命紀念園園區收費標準", page_icon="🏢", layout="centered")
 
 # ==========================================
 # 🎨 終極視覺優化區（徹底洗白所有容器、拔除一切外框與殘影）
@@ -196,7 +196,7 @@ if cabinet_number.strip():
 st.write("---")
 
 # ==========================================
-# 3. 勾選符合之特殊減免條件（🌟 全面改用 st.toggle、智慧自適應隱藏）
+# 3. 勾選符合之特殊減免條件（🌟 智慧自適應隱藏、文字極簡修正）
 # ==========================================
 st.header("3. 勾選符合之特殊減免條件")
 
@@ -205,9 +205,7 @@ if facility_type == "牌位":
     is_diverse = is_low_income = is_hero = is_no_owner = is_no_name = is_tower_damaged = is_project_free = is_special_gov = is_body_donation = False
     is_ty_project_no_bonus = is_out_project_move = is_out_project_5y = is_self_dig = is_buried_5y = is_mutual = False
 else:
-    st.caption("💡 系統已根據亡者除戶所在縣市自動隱藏不適用選項，畫面保持極致乾淨、完全無框線！")
-    
-    # 1~9 條常態開關顯示
+    # 1~9 條常態開關顯示 (已徹底刪除原提示文字)
     is_diverse = st.toggle("1. 非桃園市亡者使用多元葬法專區")
     is_low_income = st.toggle("2. 亡者為各縣市列冊之「低收入戶」或「中低收入戶」")
     is_hero = st.toggle("3. 亡者為軍公教人員、民防人員、義警、義消或其他依法令從事公務「因公殉職」人員")
@@ -222,7 +220,7 @@ else:
     is_out_project_move = False
     is_out_project_5y = False
 
-    # ─── 🛸 智慧自適應完全隱藏流（🌟 核心修訂文字，絕無擅自變動） ───
+    # ─── 🛸 智慧自適應完全隱藏流（精準逐字文字） ───
     if is_input_empty or is_ty_city:
         is_ty_project_no_bonus = st.toggle("10. 桃園市籍亡者因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取「加發獎勵金」")
         
@@ -231,8 +229,8 @@ else:
         is_out_project_5y = st.toggle("12. 該外縣市籍亡者原已「埋葬於桃園市公、私立公墓 5 年以上」")
     # ───────────────────────────────────
     
-    # 13~15 條常態開關顯示
-    is_self_dig = st.toggle("13. 屬於桃園市禁葬公墓「自行起掘」遷葬至桃園市公立納骨塔【減收10%，最高上限一萬】")
+    # 13~15 條常態開關顯示（🌟 核心修正：已完全剔除第13條括號內的額外說明文字）
+    is_self_dig = st.toggle("13. 屬於桃園市禁葬公墓「自行起掘」遷葬至桃園市公立納骨塔")
     is_buried_5y = st.toggle("14. 亡者已埋葬於桃園市公、私立公墓5年以上，或墳墓設置條例施行前已埋葬桃園市土地，經戶政查詢無亡者戶籍資料者")
     is_mutual = st.toggle("15. 桃園市籍亡者收費與外縣市公立納骨塔市民相同收費，並經桃園市政府公告互惠者")
 
@@ -307,7 +305,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                             elif is_tower_damaged: law_code = "第5條第1項第6款：「原存放桃園市公立納骨塔因更新或毀損無法繼續使用，免收費用。」"
                             elif is_project_free: law_code = "第5條第1項第7款：「不分本市或外縣市亡者，因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取遷葬補償費或救濟金者，免收費用。」"
                             elif is_special_gov: law_code = "第5條第1項第9款：「因天災、事變、不可抗力或特殊原因死亡或家屬生活陷於困難，經桃園市政府專案核准者，免收費用。」"
-                            elif is_body_donation: law_code = "第5條第1項 Lion 第10款：「醫療院所捐贈器官或遺體，免收費用。」"
+                            elif is_body_donation: law_code = "第5條第1項第10款：「醫療院所捐贈器官或遺體，免收費用。」"
                             
                         # 🛸 大分流 2：市民價打 5 折
                         elif is_ty_project_no_bonus or detected_village or is_baby_local_discount or is_both_out_project_matched:
@@ -375,7 +373,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                     | :--- | :--- |
                     | 申請設施櫃位 | {facility_type} （第 {layer_num} 層 {seq_num} 號） |
                     | 標準市民基準價 | **NT$ {base_price:,}** |
-                    |收費身份類別 | {status_type} |
+                    | 收費身份類別 | {status_type} |
                     | --- | --- |
                     | 🎯 **臨櫃實收總金額** | <span style="color:#D32F2F; font-size:24px; font-weight:900;">**NT$ {final_bill:,}**</span> |
                     """, unsafe_allow_html=True)
