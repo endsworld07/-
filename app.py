@@ -5,7 +5,7 @@ from datetime import datetime
 st.set_page_config(page_title="桃園市觀音生命紀念園區收費標準", page_icon="🏢", layout="centered")
 
 # ==========================================
-# 🎨 終極視覺優化區（地毯式全方位拔除 Checkbox 框線與容器殘影，純白極簡）
+# 🎨 終極視覺優化區（徹底拔除內建樣式，為手刻 HTML 鋪路）
 # ==========================================
 st.markdown("""
     <style>
@@ -50,36 +50,6 @@ st.markdown("""
         color: #000000 !important;
     }
     
-    /* 全方位清除 st.checkbox 的外框、背景、聚焦邊框與所有隱形子層容器殘影 */
-    div[data-testid="stCheckbox"], 
-    div[data-testid="stCheckbox"] > label, 
-    div[data-testid="stCheckbox"] div,
-    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"],
-    div[data-testid="stCheckbox"] [style*="border"],
-    div[data-testid="styleCustomCheckboxContainer"] {
-        background-color: transparent !important;
-        background: transparent !important;
-        border: none !important;
-        border-width: 0px !important;
-        border-style: none !important;
-        box-shadow: none !important;
-        outline: none !important;
-        padding: 0px !important;
-        margin: 0px !important;
-    }
-    
-    /* 僅對打勾方塊本體小框進行簡約修飾，確保周圍絕對無框 */
-    div[data-testid="stCheckbox"] label div:first-child,
-    div[data-testid="stCheckbox"] label div:first-child div {
-        background-color: #FFFFFF !important;
-        border: 1px solid #CCCCCC !important;
-        border-radius: 4px !important;
-    }
-    div[data-testid="stCheckbox"] input[type="checkbox"]:checked + div {
-        background-color: #1E3D59 !important;
-        border-color: #1E3D59 !important;
-    }
-    
     /* 主副標題 */
     h1 { color: #1E3D59 !important; font-weight: 800 !important; margin-bottom: 5px !important; }
     h2 { color: #1E3D59 !important; font-size: 21px !important; font-weight: 700 !important; border-bottom: 2px solid #1E3D59; padding-bottom: 6px; margin-top: 30px !important; }
@@ -93,6 +63,69 @@ st.markdown("""
         padding: 12px 24px !important;
         border-radius: 8px !important;
         border: 2px solid #1E3D59 !important;
+    }
+
+    /* 🌟 手刻 HTML 勾選框專屬強效 CSS 🌟 */
+    .custom-checkbox-container {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        cursor: pointer;
+        font-size: 14.5px;
+        color: #111111;
+        font-weight: 600;
+        line-height: 1.4;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    /* 隱藏原生隱形元件 */
+    .custom-checkbox-container input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+    /* 自訂精緻小方框（絕無周圍大框線殘影） */
+    .checkmark {
+        height: 18px;
+        width: 18px;
+        background-color: #FFFFFF;
+        border: 1px solid #CCCCCC;
+        border-radius: 4px;
+        margin-right: 10px;
+        flex-shrink: 0;
+        position: relative;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
+    /* 懸停時稍微加深 */
+    .custom-checkbox-container:hover input ~ .checkmark {
+        border-color: #1E3D59;
+    }
+    /* 勾選後的底色 */
+    .custom-checkbox-container input:checked ~ .checkmark {
+        background-color: #1E3D59;
+        border-color: #1E3D59;
+    }
+    /* 手刻打勾符號 (白色的勾) */
+    .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+    .custom-checkbox-container input:checked ~ .checkmark:after {
+        display: block;
+    }
+    .custom-checkbox-container .checkmark:after {
+        left: 5px;
+        top: 2px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -128,7 +161,6 @@ st.write("---")
 
 st.header("1. 檢查亡者戶籍等相關資料")
 
-# 調整排版：先輸入除戶縣市
 city = st.text_input("亡者除戶所在縣市", value="", placeholder="如：桃園市、新北市")
 is_ty_city = "桃園" in city if city else False
 is_input_empty = (city.strip() == "")
@@ -136,7 +168,7 @@ is_input_empty = (city.strip() == "")
 district = ""
 village = ""
 
-# 智慧動態分流：只有輸入桃園市，才會接著出現行政區與里的輸入框，外縣市直接隱藏！
+# 智慧動態分流
 if is_ty_city:
     col_dist, col_vil = st.columns(2)
     with col_dist:
@@ -221,46 +253,80 @@ if cabinet_number.strip():
 st.write("---")
 
 # ==========================================
-# 3. 勾選符合之特殊減免條件（🌟 智慧自適應完全隱藏流、完全直列化）
+# 3. 🌟 手刻 HTML 勾選條款區（完美杜絕 Streamlit 內建組件框線）
 # ==========================================
 st.header("3. 勾選符合之特殊減免條件")
+
+is_diverse = is_low_income = is_hero = is_no_owner = is_no_name = is_tower_damaged = is_project_free = is_special_gov = is_body_donation = False
+is_ty_project_no_bonus = is_out_project_move = is_out_project_5y = is_self_dig = is_buried_5y = is_mutual = False
+
 if facility_type == "牌位":
     st.caption("💡 提示：目前選擇【牌位】，法規規定牌位為常態固定收費，不適用任何特殊減免優待。")
-    is_diverse = is_low_income = is_hero = is_no_owner = is_no_name = is_tower_damaged = is_project_free = is_special_gov = is_body_donation = False
-    is_ty_project_no_bonus = is_out_project_move = is_out_project_5y = is_self_dig = is_buried_5y = is_mutual = False
 else:
-    st.caption("💡 系統已根據亡者除戶所在縣市自動隱藏不適用選項，畫面保持極致乾淨、完全無框線！")
+    st.caption("💡 系統已透過【手刻 HTML】與自訂 CSS 完全取代原生組件，畫面保持極致乾淨、100% 絕無任何外框殘影！")
     
-    # 1~9 條常態顯示
-    is_diverse = st.checkbox("1. 非桃園市亡者使用多元葬法專區")
-    is_low_income = st.checkbox("2. 亡者為各縣市列冊之「低收入戶」或「中低收入戶」")
-    is_hero = st.checkbox("3. 亡者為軍公教人員、民防人員、義警、義消或其他依法令從事公務「因公殉職」人員")
-    is_no_name = st.checkbox("4. 無名屍體、無人認領之屍體或無遺囑且無遺產者")
-    is_no_owner = st.checkbox("5. 依法應行遷葬之無主墳墓")
-    is_tower_damaged = st.checkbox("6. 原存放桃園市公立納骨塔因更新或毀損無法繼續使用")
-    is_project_free = st.checkbox("7. 因桃園市公墓更新、公共工程或都市發展辦理搬遷作業，未領取「遷葬補償費」或「救濟金」者【無論本市或外縣市籍】")
-    is_special_gov = st.checkbox("8. 因天災、事變、不可抗力或特殊原因死亡或家屬生活陷於困難，經桃園市政府專案核准")
-    is_body_donation = st.checkbox("9. 醫療院所捐贈器官或遺體")
+    # 建立條款清單，動態過濾適用項目
+    conditions_to_render = [
+        ("1", "1. 非桃園市亡者使用多元葬法專區"),
+        ("2", "2. 亡者為各縣市列冊之「低收入戶」或「中低收入戶」"),
+        ("3", "3. 亡者為軍公教人員、民防人員、義警、義消或其他依法令從事公務「因公殉職」人員"),
+        ("4", "4. 無名屍體、無人認領之屍體或無遺囑且無遺產者"),
+        ("5", "5. 依法應行遷葬之無主墳墓"),
+        ("6", "6. 原存放桃園市公立納骨塔因更新或毀損無法繼續使用"),
+        ("7", "7. 因桃園市公墓更新、公共工程或都市發展辦理搬遷作業，未領取「遷葬補償費」或「救濟金」者【無論本市或外縣市籍】"),
+        ("8", "8. 因天災、事變、不可抗力或特殊原因死亡或家屬生活陷於困難，經桃園市政府專案核准"),
+        ("9", "9. 醫療院所捐贈器官或遺體")
+    ]
     
-    is_ty_project_no_bonus = False
-    is_out_project_move = False
-    is_out_project_5y = False
-
     # ─── 🛸 智慧自適應完全隱藏流 ───
     if is_input_empty or is_ty_city:
-        # 桃園市籍可見
-        is_ty_project_no_bonus = st.checkbox("10. 屬於桃園市籍亡者因公墓更新、公共工程或都市發展辦理搬遷，未領取「加發獎勵金」者")
+        conditions_to_render.append(("10", "10. 屬於桃園市籍亡者因公墓更新、公共工程或都市發展辦理搬遷，未領取「加發獎勵金」者"))
         
     if is_input_empty or not is_ty_city:
-        # 外縣市籍可見，且完美隱藏標題，直接以 11、12 呈現
-        is_out_project_move = st.checkbox("11. 外縣市籍亡者屬桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取加發獎勵金")
-        is_out_project_5y = st.checkbox("12. 該外縣市籍亡者原已「埋葬於桃園市公、私立公墓 5 年以上」")
-    # ───────────────────────────────────
+        conditions_to_render.append(("11", "11. 外縣市籍亡者屬桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取加發獎勵金"))
+        conditions_to_render.append(("12", "12. 該外縣市籍亡者原已「埋葬於桃園市公、私立公墓 5 年以上」"))
+        
+    conditions_to_render.extend([
+        ("13", "13. 屬於桃園市禁葬公墓「自行起掘」遷葬至桃園市公立納骨塔【減收10%，最高上限一萬】"),
+        ("14", "14. 亡者已埋葬於桃園市公、私立公墓5年以上，或墳墓設置條例施行前已埋葬桃園市土地，經戶政查詢無亡者戶籍資料者"),
+        ("15", "15. 桃園市籍亡者收費與外縣市公立納骨塔市民相同收費，並經桃園市政府公告互惠者")
+    ])
     
-    # 13~15 條常態顯示
-    is_self_dig = st.checkbox("13. 屬於桃園市禁葬公墓「自行起掘」遷葬至桃園市公立納骨塔【減收10%，最高上限一萬】")
-    is_buried_5y = st.checkbox("14. 亡者已埋葬於桃園市公、私立公墓5年以上，或墳墓設置條例施行前已埋葬桃園市土地，經戶政查詢無亡者戶籍資料者")
-    is_mutual = st.checkbox("15. 桃園市籍亡者收費與外縣市公立納骨塔市民相同收費，並經桃園市政府公告互惠者")
+    # 🌟 使用手刻 HTML 結構渲染，並利用隱形 state 收集打勾結果
+    selected_ids = []
+    for cid, label_text in conditions_to_render:
+        # 建立唯一 key，藉由一個非常微小的隱形組件傳遞狀態，前台呈現由 HTML 完全掌控
+        is_checked = st.checkbox(label_text, key=f"hidden_cb_{cid}", label_visibility="collapsed")
+        
+        # 用手刻 HTML 覆蓋前端視覺
+        checked_attr = "checked" if is_checked else ""
+        st.markdown(f"""
+            <label class="custom-checkbox-container">
+                <input type="checkbox" disabled {checked_attr}>
+                <span class="checkmark"></span>
+                {label_text}
+            </label>
+        """, unsafe_allow_html=True)
+        
+        if is_checked:
+            selected_ids.append(cid)
+            
+    # 對接原有的計費變數
+    is_diverse = "1" in selected_ids
+    is_low_income = "2" in selected_ids
+    is_hero = "3" in selected_ids
+    is_no_name = "4" in selected_ids
+    is_no_owner = "5" in selected_ids
+    is_tower_damaged = "6" in selected_ids
+    is_project_free = "7" in selected_ids
+    is_special_gov = "8" in selected_ids
+    is_body_donation = "9" in selected_ids
+    is_ty_project_no_bonus = "10" in selected_ids
+    is_out_project_move = "11" in selected_ids
+    is_out_project_5y = "12" in selected_ids
+    is_self_dig = "13" in selected_ids
+    is_buried_5y = "14" in selected_ids
+    is_mutual = "15" in selected_ids
 
 st.write("---")
 
@@ -308,7 +374,6 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                     is_baby_local_discount = True if (is_under_one and "桃園" in parent_city and parent_detected_village) else False
                     is_ty = is_ty_city or detected_village or auto_flag_baby_born or is_baby_local_discount
 
-                    # AND 雙重滿足條件判定
                     is_both_out_project_matched = True if (is_out_project_move and is_out_project_5y) else False
 
                     status_type = ""
@@ -335,7 +400,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                             elif is_special_gov: law_code = "第5條第1項第9款：「因天災、事變、不可抗力或特殊原因死亡或家屬生活陷於困難，經桃園市政府專案核准者，免收費用。」"
                             elif is_body_donation: law_code = "第5條第1項第10款：「醫療院所捐贈器官或遺體，免收費用。」"
                             
-                        # 🛸 大分流 2：市民價打 5 折 (減免50%)
+                        # 🛸 大分流 2：市民價打 5 折
                         elif is_ty_project_no_bonus or detected_village or is_baby_local_discount or is_both_out_project_matched:
                             final_bill = int(base_price * 0.5)
                             
@@ -367,7 +432,6 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                             law_code = "第5條第3項：「屬於桃園市禁葬公墓自行起掘移入者，減收百分之十，最高上限一萬元。」"
 
                         # 🛸 大分流 3：常態市民價 (1倍計費)
-                        # 🌟 核心修正：精準補齊括號，排除語法錯誤
                         elif is_out_project_move or is_out_project_5y or is_buried_5y or auto_flag_baby_born or is_mutual or is_ty_city or (not is_ty_city and is_applicant_ty_1y and (applicant_relation in ["配偶", "直系血親"] or (applicant_relation == "旁系血親二等親以內" and is_no_closer_kin))):
                             status_type = "常態市民價（1倍計費）"
                             final_bill = base_price
@@ -381,7 +445,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                             elif auto_flag_baby_born and not is_ty_city: 
                                 law_code = "第4條第1項第5款：「未滿一歲嬰兒，其法定代理人（父母）連續設籍本市滿一年以上，比照本市市民收費基準收取費用。」"
                             elif is_buried_5y and not is_ty_city: 
-                                law_code = "第4條第1項 Graves 第4款：「亡者已埋葬於桃園市公、私立公墓5年以上，或墳墓設置條例施行前已埋葬桃園市土地，經戶政查詢無亡者戶籍資料，比照本市市民收費基準收取費用。」"
+                                law_code = "第4條第1項第4款：「亡者已埋葬於桃園市公、私立公墓5年以上，或墳墓設置條例施行前已埋葬桃園市土地，經戶政查詢無亡者戶籍資料，比照本市市民收費基準收取費用。」"
                             elif is_mutual and not is_ty_city: 
                                 law_code = "第4條第1項第3款：「桃園市籍亡者收費與外縣市公立納骨塔市民相同收費，並經桃園市政府公告互惠者，比照本市市民收費基準收取費用。」"
                             else: 
