@@ -5,7 +5,7 @@ from datetime import datetime
 st.set_page_config(page_title="桃園市觀音生命紀念園區收費判別系統", page_icon="🏢", layout="centered")
 
 # ==========================================
-# 🎨 進階網頁 CSS 視覺優化區（勾選框強制白底優化版）
+# 🎨 進階網頁 CSS 視覺優化區（白底黑字、拔除文字框優化版）
 # ==========================================
 st.markdown("""
     <style>
@@ -23,32 +23,45 @@ st.markdown("""
         margin-top: 20px !important;
     }
     
-    /* 強制所有輸入框、打勾項目的標籤文字為【深黑色】 */
-    .stWidgetLabel p, .stCheckbox p, p {
+    /* 🌟 第一部分修正：強制所有輸入框標籤、提示文字為【深黑色】 */
+    .stWidgetLabel p, p {
         color: #111111 !important;
         font-weight: 600 !important;
         font-size: 14.5px !important;
     }
     
-    /* 強制所有文字輸入框內部背景改為【純白色】，字體為【深黑色】 */
-    .stTextInput input {
+    /* 🌟 第一部分修正：強制所有文字輸入框內部背景完全為【純白色】，字體為【深黑色】 */
+    .stTextInput input, .stSelectbox div div div {
         background-color: #FFFFFF !important;
         color: #111111 !important;
         border: 1px solid #CCCCCC !important;
     }
     
-    /* 🌟 核心修正：強制複選框 (Checkbox) 的正方形格子背景完全為【純白色】 */
-    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"]::before {
-        background-color: #FFFFFF !important;
-    }
+    /* 🌟 第二部分修正：強制複選框 (Checkbox) 的正方形小格子本體完全為【純白色】 */
     div[data-testid="stCheckbox"] label div:first-child {
         background-color: #FFFFFF !important;
-        border: 2px solid #A0AAB2 !important; /* 邊框顏色微微加深加粗，辨識度更高 */
+        border: 2px solid #A0AAB2 !important; /* 邊框微微加深，更容易看清 */
     }
     
-    /* 當勾選方塊被「打勾」之後的狀態優化 */
+    /* 當方塊被「打勾」之後的狀態（維持原本的高質感深藍） */
     div[data-testid="stCheckbox"] input[type="checkbox"]:checked + div {
-        background-color: #1E3D59 !important; /* 打勾時維持深藍色主色調 */
+        background-color: #1E3D59 !important;
+    }
+    
+    /* 🌟 第二部分修正：徹底拔除 Checkbox 後方文字的外框與背景（不要有框） */
+    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0px !important;
+    }
+    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"]::before {
+        display: none !important; /* 移除可能的底色偽元素 */
+    }
+    div[data-testid="stCheckbox"] p {
+        color: #111111 !important;
+        font-weight: 600 !important;
+        background: transparent !important;
     }
     
     /* 主標題與副標題 */
@@ -136,7 +149,7 @@ def calculate_age_roc(birth_roc_str, death_roc_str):
 # 1. 填寫亡者基本資料
 # ==========================================
 st.title("🏢 桃園市觀音生命紀念園區收費判別系統")
-st.caption("版本：1150617 智慧櫃位算價防呆公告版")
+st.caption("版本：1150617 畫面視覺精緻優化版")
 st.write("---")
 
 st.header("1. 檢查亡者戶籍等相關資料")
@@ -170,8 +183,6 @@ auto_flag_baby_born = False
 if age is not None and is_under_one:
     st.write("---")
     st.error("👶 系統偵測：亡者為【未滿一歲嬰兒】！")
-    
-    is_baby_no_registry = "無" in district or district.strip() == "" or "無" in village or village.strip() == ""
     
     st.subheader("🍼 請填寫法定代理人（父母）資料")
     col_pcity, col_pdist, col_pvil = st.columns(3)
@@ -207,7 +218,8 @@ st.write("---")
 st.header("3. 勾選符合之特殊減免條件")
 st.caption("💡 依法規『多項優待應擇一申請』，若多選系統會自動挑選最優惠項目。")
 
-is_diverse = st.checkbox("選擇使用「多元葬法專區」（如樹葬、灑葬等環保葬）")
+# 🌟 修正：文字正式更新為「使用多元葬法（例如：樹葬等）」
+is_diverse = st.checkbox("使用多元葬法（例如：樹葬等）")
 is_low_income = st.checkbox("亡者為各縣市列冊之「低收入戶」或「中低收入戶」")
 is_hero = st.checkbox("亡者為軍公教、民防、義警消「因公殉職」人員")
 is_no_owner = st.checkbox("亡者身分確認為「無主墳墓」")
@@ -315,68 +327,4 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                         elif is_no_name: law_code = "第5條第1項第4款"
                         elif is_no_owner: law_code = "第5條第1項第5款"
                         elif is_tower_damaged: law_code = "第5條第1項第6款"
-                        elif is_body_donation: law_code = "第5條第1項第7款"
-                        
-                    elif is_ty_project_5y or detected_village is not None or is_baby_local_discount or is_ty_project_no_bonus:
-                        status_type = "市民價打 5 折"
-                        final_bill = int(base_price * 0.5)
-                        if is_baby_local_discount: law_code = "第5條第2項第1款但書"
-                        elif detected_village is not None:
-                            if is_under_one:
-                                if "桃園" in parent_city and parent_detected_village is not None:
-                                    law_code = "第5條第2項第1款但書"
-                                else:
-                                    status_type = "常態市民價"
-                                    final_bill = base_price
-                                    law_code = "回歸常態市民基準（不符特定里民5折但書）"
-                            else:
-                                law_code = "第5條第2項第1款"
-                        elif is_ty_project_no_bonus: law_code = "第5條第2項第2款"
-                        elif is_ty_project_5y:
-                            status_type = "外縣市工程遷葬特惠（市民價 5 折）"
-                            law_code = "第4條第2項"
-
-                    elif is_self_dig:
-                        status_type = "市民價打 9 折（自行起掘）"
-                        discount_amount = int(base_price * 0.1)
-                        if discount_amount > 10000:
-                            discount_amount = 10000
-                        final_bill = base_price - discount_amount
-                        law_code = "第5條第3項"
-
-                    elif is_buried_5y or auto_flag_baby_born or is_mutual or is_applicant_ty or is_ty_city:
-                        status_type = "常態市民價（1倍計費）"
-                        final_bill = base_price
-                        if auto_flag_baby_born and not is_ty_city: law_code = "第4條第1項第5款"
-                        elif is_buried_5y and not is_ty_city: law_code = "第4條第1項第4款"
-                        elif is_mutual and not is_ty_city: law_code = "第4條[第1項]第3款"
-                        elif is_applicant_ty and not is_ty_city: law_code = "第4條第1項第5款"
-                        else: law_code = "第3條附表"
-
-                    else:
-                        status_type = "常態外縣市價（3倍計費）"
-                        final_bill = base_price * 3
-                        law_code = "第4條第1項"
-
-                    st.write("---")
-                    if "全免" in status_type:
-                        st.success(f"🎉 判別結果：【{status_type}】")
-                    elif "外縣市" in status_type:
-                        st.error(f"🚨 判別結果：【{status_type}】")
-                    else:
-                        st.success(f"💰 判別結果：【{status_type}】")
-                        
-                    st.markdown(f"**法規依據**：桃園市公立殯葬設施使用收費標準 **{law_code}**")
-                    
-                    st.markdown(f"""
-                    | 結算項目 | 金額與計費細節 |
-                    | :--- | :--- |
-                    | 申請設施櫃位 | {facility_type} （第 {layer_num} 層 {seq_num} 號） |
-                    | 標準市民基準價 | **NT$ {base_price:,}** |
-                    | 收費身份類別 | {status_type} |
-                    | --- | --- |
-                    | 🎯 **臨櫃實收總金額** | <span style="color:#D32F2F; font-size:24px; font-weight:900;">**NT$ {final_bill:,}**</span> |
-                    """, unsafe_allow_html=True)
-                    
-                    if "全免" in status_type:
-                        st.warning("💡 提示：符合「費用全免」資格者，其塔位使用位置由管理機關指定。若家屬想挑選其他特定位置，須補足差額。")
+                        elif is_body_donation
