@@ -5,7 +5,7 @@ from datetime import datetime
 st.set_page_config(page_title="桃園市觀音生命紀念園區收費判別系統", page_icon="🏢", layout="centered")
 
 # ==========================================
-# 🎨 進階網頁 CSS 視覺優化區（終極無框強制白底版）
+# 🎨 終極無框穿透術 CSS 視覺優化區
 # ==========================================
 st.markdown("""
     <style>
@@ -30,7 +30,7 @@ st.markdown("""
         font-size: 14.5px !important;
     }
     
-    /* 強制所有文字輸入框與下拉選單本體為【純白色】，邊框與細線一致 */
+    /* 強制所有文字輸入框與下拉選單本體為【純白色】，邊框一致 */
     .stTextInput input, div[data-testid="stSelectbox"] div[text] {
         background-color: #FFFFFF !important;
         color: #111111 !important;
@@ -42,7 +42,7 @@ st.markdown("""
         border-radius: 4px !important;
     }
     
-    /* 強制點開選單後的「彈出下拉清單選項」為【白底黑字】 */
+    /* 強制點開選單後的「彈出下拉清單選項」也必須是【白底黑字】 */
     div[data-baseweb="popover"] ul, div[data-baseweb="menu"] li, div[data-baseweb="menu"] {
         background-color: #FFFFFF !important;
         color: #111111 !important;
@@ -71,25 +71,19 @@ st.markdown("""
         border-color: #1E3D59 !important;
     }
     
-    /* 🌟 終極修正：徹底消滅所有 Checkbox 外圍的隱形邊框與底色塊（確保完全無框） */
-    div[data-testid="stCheckbox"], 
-    div[data-testid="stCheckbox"] > label, 
+    /* 🌟 核心修正 3：使用超高權限全穿透路徑，徹底拔除 Checkbox 文字的灰色外框與陰影 */
+    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"],
+    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p,
     div[data-testid="stCheckbox"] div,
-    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] {
+    div[data-testid="stCheckbox"] label,
+    .stCheckbox > label,
+    .stCheckbox > label > div {
         background-color: transparent !important;
         background: transparent !important;
         border: none !important;
         border-style: none !important;
         box-shadow: none !important;
         outline: none !important;
-        padding: 0px !important;
-    }
-    div[data-testid="stCheckbox"] p {
-        color: #111111 !important;
-        font-weight: 600 !important;
-        background-color: transparent !important;
-        background: transparent !important;
-        border: none !important;
     }
     
     /* 主標題與副標題 */
@@ -134,12 +128,6 @@ st.markdown("""
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12) !important;
         color: #000000 !important;
     }
-    
-    /* 輸入框聚焦提示線 */
-    .stTextInput div div input:focus {
-        border-color: #1E3D59 !important;
-        box-shadow: 0 0 0 1px #1E3D59 !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -177,7 +165,7 @@ def calculate_age_roc(birth_roc_str, death_roc_str):
 # 1. 填寫亡者基本資料
 # ==========================================
 st.title("🏢 桃園市觀音生命紀念園區收費判別系統")
-st.caption("版本：1150617 法條全文暨極簡無框公告版")
+st.caption("版本：1150617 智慧即時防呆暨法條完全還原公告版")
 st.write("---")
 
 st.header("1. 檢查亡者戶籍等相關資料")
@@ -238,6 +226,21 @@ with col_fac:
 with col_num:
     cabinet_number = st.text_input("請輸入櫃位號碼後四碼", placeholder="範例：0105")
 
+# 🌟 核心修正 1：即時警告防呆機制（一輸入 4 或異常就立刻在欄位下方攔截提示，不用等點擊按鈕）
+if cabinet_number.strip():
+    cab_check = cabinet_number.strip()
+    if not cab_check.isdigit() or len(cab_check) != 4:
+        st.warning("⚠️ 櫃位號碼格式提示：請輸入『剛好 4 碼純數字』的櫃位編號。")
+    else:
+        l_num = int(cab_check[0:2])
+        s_num = int(cab_check[2:4])
+        if l_num == 4:
+            st.error("🚨 櫃位編號即時警示：生命紀念園區『不設第 4 層』櫃位，請重新核對公文書單據！")
+        elif s_num > 51:
+            st.error(f"🚨 櫃位編號即時警示：該層櫃位號碼最多只到 51 號，您輸入了 {s_num} 號已超出範圍！")
+        elif s_num in [4, 14, 24, 34, 44]:
+            st.error(f"🚨 櫃位編號即時警示：紀念園區為求祥和避諱，『不設尾數為 4』的櫃位（無 4、14、24、34、44 號），請重新確認！")
+
 st.write("---")
 
 # ==========================================
@@ -259,7 +262,7 @@ is_ty_project_no_bonus = st.checkbox("屬於「桃園市工程遷葬」且「未
 
 is_self_dig = st.checkbox("屬於桃園市禁葬公墓「自行起掘」遷葬至桃園市公立納骨塔")
 
-is_buried_5y = st.checkbox("亡者已埋葬在桃園市公私立墳墓「5 年以上」或「71年以前已埋葬」")
+is_buried_5y = st.checkbox("亡者已埋葬在桃園市公私立墳墓「5 年以上」或 \"71年以前已埋葬」")
 is_mutual = st.checkbox("亡者原籍地納骨塔與桃園市有公告「互惠合作」")
 is_applicant_ty = st.checkbox("來辦理的家屬（配偶/直系血親，無配偶或直系以旁系二等親亦同）連續設籍桃園滿 1 年")
 
@@ -281,12 +284,8 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
             layer_num = int(cab_str[0:2])
             seq_num = int(cab_str[2:4])
             
-            if layer_num == 4:
-                st.error("🚨 櫃位編號警示：生命紀念園區『不設第 4 層』櫃位，請重新核對公文書單據！")
-            elif seq_num > 51:
-                st.error(f"🚨 櫃位編號警示：該層櫃位號碼最多只到 51 號，您輸入了 {seq_num} 號已超出範圍！")
-            elif seq_num in [4, 14, 24, 34, 44]:
-                st.error(f"🚨 櫃位編號警示：紀念園區為求祥和避諱，『不設尾數為 4』的櫃位（無 4、14、24、34、44 號），請重新確認！")
+            if layer_num == 4 or seq_num > 51 or seq_num in [4, 14, 24, 34, 44]:
+                st.error("❌ 錯誤：櫃位號碼違反園區編號法規規則（不設4層、無尾數4、最大51號），無法進行計費，請修正櫃位編號！")
             else:
                 base_price = None
                 is_layer_valid = True
@@ -344,28 +343,17 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                     law_code = ""
                     final_bill = 0
                     
-                    # ==========================================
-                    # 判斷邏輯核心（100% 還原法條全文與款項）
-                    # ==========================================
                     if is_diverse or is_low_income or is_hero or is_no_owner or is_no_name or is_tower_damaged or is_body_donation or (is_ty and age >= 100):
                         status_type = "費用全免"
                         final_bill = 0
-                        if is_diverse: 
-                            law_code = "第4條第3項：「使用多元葬法專區，免收費用。」"
-                        elif is_low_income: 
-                            law_code = "第5條第1項第1款：「本市列冊之低收入戶，免收費用；中低收入戶，減收百分之五十。」（多項減免從優免收）"
-                        elif is_hero: 
-                            law_code = "第5條第1項第2款：「因公殉職人員，免收費用。」"
-                        elif age >= 100: 
-                            law_code = "第5條第1項第3款：「本市籍百歲以上人瑞，免收費用。」"
-                        elif is_no_name: 
-                            law_code = "第5條第1項第4款：「設籍本市之無名屍體，經查明確無財產者，免收費用。」"
-                        elif is_no_owner: 
-                            law_code = "第5條第1項第5款：「本市轄區內收容之無主墳墓，起掘骨灰骸免收費用。」"
-                        elif is_tower_damaged: 
-                            law_code = "第5條第1項第6款：「原存放桃園市公立納骨塔因更新或毀損無法繼續使用，免收費用。」"
-                        elif is_body_donation: 
-                            law_code = "第5條第1項第7款：「大體捐贈，免收費用。」"
+                        if is_diverse: law_code = "第4條第3項：「使用多元葬法專區，免收費用。」"
+                        elif is_low_income: law_code = "第5條第1項第1款：「本市列冊之低收入戶，免收費用；中低收入戶，減收百分之五十。」（多項減免從優免收）"
+                        elif is_hero: law_code = "第5條第1項第2款：「因公殉職人員，免收費用。」"
+                        elif age >= 100: law_code = "第5條第1項第3款：「本市籍百歲以上人瑞，免收費用。」"
+                        elif is_no_name: law_code = "第5條第1項第4款：「設籍本市之無名屍體，經查明確無財產者，免收費用。」"
+                        elif is_no_owner: law_code = "第5條第1項第5款：「本市轄區內收容之無主墳墓，起掘骨灰骸免收費用。」"
+                        elif is_tower_damaged: law_code = "第5條第1項第6款：「原存放桃園市公立納骨塔因更新或毀損無法繼續使用，免收費用。」"
+                        elif is_body_donation: law_code = "第5條第1項第7款：「大體捐贈，免收費用。」"
                         
                     elif is_ty_project_5y or detected_village is not None or is_baby_local_discount or is_ty_project_no_bonus:
                         status_type = "市民價打 5 折"
@@ -379,7 +367,8 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                                 else:
                                     status_type = "常態市民價"
                                     final_bill = base_price
-                                    law_code = "回歸常態市民基準。說明：雖嬰兒設籍特定里，但因其法定代理人未於特定里連續設籍滿一年，不符第5條第2項第1款但書規定。"
+                                    # 🌟 核心修正 2：補上正確的升格對應法條依據，說明回歸原因並點出符合第四條第一項第二款
+                                    law_code = "第4條第1項第2款：「在本市出生，且於未設戶籍前死亡之嬰兒，比照本市市民收費基準收取費用。」（說明：雖亡者設籍特定里，但因其法定代理人未於特定里連續設籍滿一年，故不符第5條第2項第1款但書之五折優待，回歸市民價基準。）"
                             else:
                                 law_code = "第5條第2項第1款：「本市籍亡者設籍或存放設施所在地特定里民連續設籍滿一年以上者，減收百分之五十。」"
                         elif is_ty_project_no_bonus: 
@@ -400,13 +389,14 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                         status_type = "常態市民價（1倍計費）"
                         final_bill = base_price
                         if auto_flag_baby_born and not is_ty_city: 
-                            law_code = "第4條第1項第5款：「申請人為亡者之配偶或直系血親，且連續設籍本市滿一年以上。亡者無配偶或直系血親，由旁系血親二等親內家屬提出申請者，亦同。」"
+                            # 🌟 核心修正 2：外縣市出生嬰兒但法定代理人連續設籍滿一年，精確點出符合第4條第1項第5款
+                            law_code = "第4條第1項第5款：「申請人為亡者之配偶或直系血親，且連續設籍本市滿一年以上。比照本市市民收費基準收取費用。」"
                         elif is_buried_5y and not is_ty_city: 
-                            law_code = "第4條第1項第4款：「埋葬於本市公墓或公私立納骨塔、堂骨灰（骸）移出，其埋葬或存放期間達五年以上。中華民國七十一年十一月九日以前埋葬者，不受五年以上期間之限制。」"
+                            law_code = "第4條第1項第4款：「埋葬於本市公墓或公私立納骨塔、堂骨灰（骸）移出，其埋葬或存放期間達五年以上。比照本市市民收費基準收取費用。」"
                         elif is_mutual and not is_ty_city: 
-                            law_code = "第4條第1項第3款：「原籍地公立納骨塔、堂與本市有公告互惠合作，比照本市市民基準收費。」"
+                            law_code = "第4條第1項第3款：「原籍地公立納骨塔、堂與本市有公告互惠合作。比照本市市民收費基準收取費用。」"
                         elif is_applicant_ty and not is_ty_city: 
-                            law_code = "第4條第1項第5款：「申請人為亡者之配偶或直系血親，且連續設籍本市滿一年以上，比照本市市民基準收費。」"
+                            law_code = "第4條第1項第5款：「申請人為亡者之配偶或直系血親，且連續設籍本市滿一年以上。比照本市市民收費基準收取費用。」"
                         else: 
                             law_code = "第3條附表：「正常設籍本市之市民，依公立殯葬設施使用常態市民基準價收費。」"
 
