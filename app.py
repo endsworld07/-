@@ -5,104 +5,113 @@ from datetime import datetime
 st.set_page_config(page_title="桃園市觀音生命紀念園區收費判別系統", page_icon="🏢", layout="centered")
 
 # ==========================================
-# 🎨 進階網頁 CSS 視覺優化區（全面拔除文字框、強制方格白底）
+# 🖼️ 圖片獨立配置區 (請在下方單引號內貼上您的完整 Base64 碼)
 # ==========================================
-st.markdown("""
+bg_image_base64 = '這裡換成您複製的完整Base64代碼'
+
+# ==========================================
+# 🎨 進階網頁 CSS 視覺優化區（自製背景圖 + 全元件清楚白底版）
+# ==========================================
+st.markdown(f"""
     <style>
-    /* 調整網頁整體底色 */
-    .stApp {
-        background-color: #F8F9FA;
-    }
+    /* 🌟 強制將背景替換為您的自製圖片，並固定不捲動 */
+    .stApp {{
+        background-image: url("{bg_image_base64}");
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+    }}
     
-    /* 核心中央白色護眼區塊 */
-    .block-container {
-        background-color: #FFFFFF !important;
+    /* 中央主區塊：加上高級感半透明白底護眼層（不透明度 94%），確保圖片透出來又看清字 */
+    .block-container {{
+        background-color: rgba(255, 255, 255, 0.94) !important;
         padding: 35px 45px !important;
         border-radius: 12px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
         margin-top: 20px !important;
-    }
+    }}
     
     /* 強制所有輸入框標籤、提示文字為【深黑色】 */
-    .stWidgetLabel p, p, label {
+    .stWidgetLabel p, p, label {{
         color: #111111 !important;
         font-weight: 600 !important;
         font-size: 14.5px !important;
-    }
+    }}
     
     /* 強制所有文字輸入框與下拉選單本體為【純白色】，邊框一致 */
-    .stTextInput input, div[data-testid="stSelectbox"] div[text] {
+    .stTextInput input, div[data-testid="stSelectbox"] div[text] {{
         background-color: #FFFFFF !important;
         color: #111111 !important;
-    }
-    div[data-testid="stSelectbox"] > div:first-child > div:first-child {
+    }}
+    div[data-testid="stSelectbox"] > div:first-child > div:first-child {{
         background-color: #FFFFFF !important;
         color: #111111 !important;
         border: 1px solid #CCCCCC !important;
         border-radius: 4px !important;
-    }
+    }}
     
     /* 強制點開選單後的「彈出下拉清單選項」也必須是【白底黑字】 */
-    div[data-baseweb="popover"] ul, div[data-baseweb="menu"] li, div[data-baseweb="menu"] {
+    div[data-baseweb="popover"] ul, div[data-baseweb="menu"] li, div[data-baseweb="menu"] {{
         background-color: #FFFFFF !important;
         color: #111111 !important;
-    }
-    div[data-baseweb="menu"] li:hover {
+    }}
+    div[data-baseweb="menu"] li:hover {{
         background-color: #D6E4F0 !important;
         color: #000000 !important;
-    }
+    }}
     
-    /* 🌟 核心修正：強制所有勾選方塊 (Checkbox) 的正方形小格子，在電腦端也絕對為【純白底色】與【淡灰細框】 */
+    /* 強制所有勾選方塊 (Checkbox) 的正方形小格子在任何主題下都絕對為【純白底色】與【淡灰細框】 */
     div[data-testid="stCheckbox"] label div:first-child,
     div[data-testid="stCheckbox"] label div:first-child div,
-    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"]::before {
+    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"]::before {{
         background-color: #FFFFFF !important;
         background: #FFFFFF !important;
         border: 1px solid #CCCCCC !important;
         border-radius: 4px !important;
-    }
-    div[data-testid="stCheckbox"] input[type="checkbox"] {
+    }}
+    div[data-testid="stCheckbox"] input[type="checkbox"] {{
         background-color: #FFFFFF !important;
-    }
+    }}
     
     /* 當方塊被「打勾」之後的狀態（維持原本的高質感深藍） */
-    div[data-testid="stCheckbox"] input[type="checkbox"]:checked + div {
+    div[data-testid="stCheckbox"] input[type="checkbox"]:checked + div {{
         background-color: #1E3D59 !important;
         border-color: #1E3D59 !important;
-    }
+    }}
     
-    /* 🌟 核心修正：徹底拔除所有 Checkbox 後方文字的外框、底色與陰影（文字絕對不要有框） */
+    /* 徹底拔除所有 Checkbox 後方文字的外框、底色與陰影（文字絕對不要有框） */
     div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"],
     div[data-testid="stCheckbox"] div,
-    div[data-testid="stCheckbox"] label {
+    div[data-testid="stCheckbox"] label {{
         background-color: transparent !important;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
         padding-top: 0px !important;
         padding-bottom: 0px !important;
-    }
-    div[data-testid="stCheckbox"] p {
+    }}
+    div[data-testid="stCheckbox"] p {{
         color: #111111 !important;
         font-weight: 600 !important;
         background-color: transparent !important;
         background: transparent !important;
-    }
+    }}
     
     /* 主標題與副標題 */
-    h1 {
+    h1 {{
         color: #1E3D59 !important;
         font-weight: 800 !important;
         letter-spacing: 0.5px;
         margin-bottom: 5px !important;
-    }
-    .stCaption {
+    }}
+    .stCaption {{
         color: #666666 !important;
         font-size: 14px !important;
-    }
+    }}
     
     /* 段落大標題 */
-    h2 {
+    h2 {{
         color: #1E3D59 !important;
         font-size: 21px !important;
         font-weight: 700 !important;
@@ -110,10 +119,10 @@ st.markdown("""
         padding-bottom: 6px;
         margin-top: 30px !important;
         margin-bottom: 15px !important;
-    }
+    }}
     
     /* 核心按鈕：高質感深藍、粗黑字體、黃金圓角 */
-    div.stButton > button:first-child {
+    div.stButton > button:first-child {{
         background-color: #D6E4F0 !important;
         color: #000000 !important;
         font-size: 19px !important;
@@ -124,19 +133,19 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
         transition: all 0.3s ease !important;
         margin-top: 15px !important;
-    }
+    }}
     
-    div.stButton > button:first-child:hover {
+    div.stButton > button:first-child:hover {{
         background-color: #B6C9DB !important;
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12) !important;
         color: #000000 !important;
-    }
+    }}
     
     /* 輸入框聚焦提示線 */
-    .stTextInput div div input:focus {
+    .stTextInput div div input:focus {{
         border-color: #1E3D59 !important;
         box-shadow: 0 0 0 1px #1E3D59 !important;
-    }
+    }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -174,7 +183,7 @@ def calculate_age_roc(birth_roc_str, death_roc_str):
 # 1. 填寫亡者基本資料
 # ==========================================
 st.title("🏢 桃園市觀音生命紀念園區收費判別系統")
-st.caption("版本：1150617 畫面視覺精緻優化版")
+st.caption("版本：1150617 智慧櫃位算價防呆公告版")
 st.write("---")
 
 st.header("1. 檢查亡者戶籍等相關資料")
@@ -311,7 +320,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                         is_layer_valid = False
 
                 if not is_layer_valid or base_price is None:
-                    st.error(f"🚨 櫃位與設施衝突：您選擇了【{facility_type}】，但輸入的層數第 【{layer_num}】 層並無規劃此設施櫃位，請核對單據！")
+                    st.error(f"🚨 櫃位與設施衝突：您選擇了【{facility_type}】，外加上輸入的層數第 【{layer_num}】 層並無規劃此設施櫃位，請核對單據！")
                 else:
                     st.info(f"💡 櫃位自動辨識：第 **{layer_num}** 層、第 **{seq_num}** 號 ｜ 亡者精確年齡為 **{age}** 歲" + (" (⚠ 未滿一歲嬰兒)" if is_under_one else ""))
                     
@@ -359,7 +368,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                         elif detected_village is not None:
                             if is_under_one:
                                 if "桃園" in parent_city and parent_detected_village is not None:
-                                    law_code = "第5條第2項第1款但書"
+                                    law_code = "第5條第2項第1款開但書"
                                 else:
                                     status_type = "常態市民價"
                                     final_bill = base_price
