@@ -2,70 +2,100 @@ import streamlit as st
 from datetime import datetime
 
 # 設定網頁標題與排版佈局
-st.set_page_config(page_title="桃園市觀音生命紀念園區收費判別系統", page_icon="🏢", layout="centered")
+st.set_page_config(page_title="桃園市觀音生命紀念園區收費標準", page_icon="🏢", layout="centered")
 
 # ==========================================
-# 🎨 終極視覺優化區（強制白底、文字黑字）
+# 🖼️ 圖片獨立配置區 (請在下方單引號內貼上您的完整 Base64 碼)
 # ==========================================
-st.markdown("""
+bg_image_base64 = 'data:image/jpeg;base64,/9j/4QBORXhpZgAATU0AKgAAAAgAAwEaAAUAAAABAAAAMgEbAAUAAAABAAAAOgEoAAMAAAABAAIAAAAAAAAACvyAAAAnEAAK/IAAACcQAAAAAP/tAEBQaG90b3Nob3AgMy4wADhCSU0EBgAAAAAABwAGAQEAAQEAOEJJTQQlAAAAAAAQAAAAAAAAAAAAAAAAAAAAAP/iDFhJQ0NfUFJPRklMRQABAQAADEhMaW5vAhAAAG1udHJSR0IgWFlaIAfOAAIACQAGADEAAGFjc3BNU0ZUAAAAAElFQyBzUkdCAAAAAAAAAAAAAAAAAAD21gABAAAAANMtSFAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEWNwcnQAAAFQAAAAM2Rlc2MAAAGEAAAAbHd0cHQAAAHwAAAAFGJrcHQAAAIEAAAAFHJYWVoAAAIYAAAAFGdYWVoAAAIsAAAAFGJYWVoAAAJAAAAAFGRtbmQAAAJUAAAAcGRtZGQAAALEAAAAiHZ1ZWQAAANMAAAAhnZpZXcAAAPUAAAAJGx1bWkAAAP4AAAAFG1lYXMAAAQMAAAAJHRlY2gAAAQwAAAADHJUUkMAAAQ8AAAIDGdUUkMAAAQ8AAAIDGJUUkMAAAQ8AAAIDHRleHQAAAAAQ29weXJpZ2h0IChjKSAxOTk4IEhld2xldHQtUGFja2FyZCBDb21wYW55AABkZXNjAAAAAAAAABJzUkdCIElFQzYxOTY2LTIuMQAAAAAAAAAAAAAAEnNSR0IgSUVDNjE5NjYtMi4xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYWVogAAAAAAAA81EAAQAAAAEWzFhZWiAAAAAAAAAAAAAAAAAAAAAAWFlaIAAAAAAAAG+iAAA49QAAA5BYWVogAAAAAAAAYpkAALeFAAAY2lhZWiAAAAAAAAAkoAAAD4QAALbPZGVzYwAAAAAAAAAWSUVDIGh0dHA6Ly93d3cuaWVjLmNoAAAAAAAAAAAAAAAWSUVDIGh0dHA6Ly93d3cuaWVjLmNoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGRlc2MAAAAAAAAALklFQyA2MTk2Ni0yLjEgRGVmYULO...'
+
+# ==========================================
+# 🎨 終極視覺優化區（自製背景圖 + 全元件清楚無框版）
+# ==========================================
+st.markdown(f"""
     <style>
-    /* 調整網頁整體底色 */
-    .stApp {
-        background-color: #F8F9FA;
-    }
+    /* 🌟 核心修正：強制將網頁底層替換為您的自製圖片，並固定不捲動 */
+    .stApp {{
+        background-image: url("{bg_image_base64}");
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+    }}
     
-    /* 核心中央白色護眼區塊 */
-    .block-container {
-        background-color: #FFFFFF !important;
+    /* 🌟 核心修正：將中央主區塊改為「半透明高質感白底」（不透明度 94%），防止背景圖被完全擋住 */
+    .block-container {{
+        background-color: rgba(255, 255, 255, 0.94) !important;
         padding: 35px 45px !important;
         border-radius: 12px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
         margin-top: 20px !important;
-    }
+    }}
     
     /* 強制所有輸入框標籤、提示文字為【深黑色】 */
-    .stWidgetLabel p, p, label {
+    .stWidgetLabel p, p, label {{
         color: #111111 !important;
         font-weight: 600 !important;
         font-size: 14.5px !important;
-    }
+    }}
     
     /* 強制所有文字輸入框與下拉選單本體為【純白色】，邊框一致 */
-    .stTextInput input, div[data-testid="stSelectbox"] div[text] {
+    .stTextInput input, div[data-testid="stSelectbox"] div[text] {{
         background-color: #FFFFFF !important;
         color: #111111 !important;
-    }
-    div[data-testid="stSelectbox"] > div:first-child > div:first-child {
+    }}
+    div[data-testid="stSelectbox"] > div:first-child > div:first-child {{
         background-color: #FFFFFF !important;
         color: #111111 !important;
         border: 1px solid #CCCCCC !important;
         border-radius: 4px !important;
-    }
+    }}
     
     /* 強制點開選單後的「彈出下拉清單選項」為【白底黑字】 */
-    div[data-baseweb="popover"] ul, div[data-baseweb="menu"] li, div[data-baseweb="menu"] {
+    div[data-baseweb="popover"] ul, div[data-baseweb="menu"] li, div[data-baseweb="menu"] {{
         background-color: #FFFFFF !important;
         color: #111111 !important;
-    }
-    div[data-baseweb="menu"] li:hover {
+    }}
+    div[data-baseweb="menu"] li:hover {{
         background-color: #D6E4F0 !important;
         color: #000000 !important;
-    }
+    }}
+    
+    /* 徹底拔除所有元件周圍的隱形邊框與灰色塊（確保完全無框） */
+    div[data-testid="stCheckbox"], 
+    div[data-testid="stCheckbox"] > label, 
+    div[data-testid="stCheckbox"] div,
+    div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] {{
+        background-color: transparent !important;
+        background: transparent !important;
+        border: none !important;
+        border-style: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+        padding: 0px !important;
+    }}
+    div[data-testid="stCheckbox"] p {{
+        color: #111111 !important;
+        font-weight: 600 !important;
+        background-color: transparent !important;
+        background: transparent !important;
+        border: none !important;
+    }}
     
     /* 主標題與副標題 */
-    h1 {
+    h1 {{
         color: #1E3D59 !important;
         font-weight: 800 !important;
         letter-spacing: 0.5px;
         margin-bottom: 5px !important;
-    }
-    .stCaption {
+    }}
+    .stCaption {{
         color: #666666 !important;
         font-size: 14px !important;
-    }
+    }}
     
     /* 段落大標題 */
-    h2 {
+    h2 {{
         color: #1E3D59 !important;
         font-size: 21px !important;
         font-weight: 700 !important;
@@ -73,10 +103,10 @@ st.markdown("""
         padding-bottom: 6px;
         margin-top: 30px !important;
         margin-bottom: 15px !important;
-    }
+    }}
     
     /* 核心按鈕 */
-    div.stButton > button:first-child {
+    div.stButton > button:first-child {{
         background-color: #D6E4F0 !important;
         color: #000000 !important;
         font-size: 19px !important;
@@ -87,12 +117,12 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
         transition: all 0.3s ease !important;
         margin-top: 15px !important;
-    }
-    div.stButton > button:first-child:hover {
+    }}
+    div.stButton > button:first-child:hover {{
         background-color: #B6C9DB !important;
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12) !important;
         color: #000000 !important;
-    }
+    }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -129,8 +159,7 @@ def calculate_age_roc(birth_roc_str, death_roc_str):
 # ==========================================
 # 1. 填寫亡者基本資料
 # ==========================================
-st.title("🏢 桃園市觀音生命紀念園區收費判別系統")
-st.caption("版本：1150617 公告版")
+st.title("🏢 桃園市觀音生命紀念園區收費標準")
 st.write("---")
 
 st.header("1. 檢查亡者戶籍等相關資料")
@@ -209,19 +238,17 @@ if cabinet_number.strip():
 st.write("---")
 
 # ==========================================
-# 4. 勾選符合之特殊減免條件（🌟 終極修正：全面改用原生 HTML，100% 徹底拔除外框）
+# 4. 勾選符合之特殊減免條件
 # ==========================================
 st.header("3. 勾選符合之特殊減免條件")
 
 if facility_type == "牌位":
     st.caption("💡 提示：目前選擇【牌位】，法規規定牌位為常態固定收費，不適用任何特殊減免優待。")
-    # 牌位模式下，所有勾選按鈕自動隱藏或失效
     is_diverse = is_low_income = is_hero = is_no_owner = is_no_name = is_tower_damaged = is_body_donation = False
     is_ty_project_5y = is_ty_project_no_bonus = is_self_dig = is_buried_5y = is_mutual = is_applicant_ty = False
 else:
     st.caption("💡 依法規『多項優待應擇一申請』，若多選系統會自動挑選最優惠項目。")
     
-    # 採用全新原生白底無框排列
     is_diverse = st.checkbox("使用多元葬法（例如：樹葬等）")
     is_low_income = st.checkbox("亡者為各縣市列冊之「低收入戶」或「中低收入戶」")
     is_hero = st.checkbox("亡者為軍公教、民防、義警消「因公殉職」人員")
@@ -263,7 +290,6 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                 base_price = None
                 is_layer_valid = True
                 
-                # 🌟 核心修正 1：只要是牌位，價格直接卡死 35000，不進行任何層數判定
                 if facility_type == "牌位":
                     base_price = 35000
                 elif facility_type == "單人骨灰櫃":
@@ -317,16 +343,11 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                     law_code = ""
                     final_bill = 0
                     
-                    # ==========================================
-                    # 判斷邏輯核心（牌位獨立攔截流，其餘設施走法條）
-                    # ==========================================
                     if facility_type == "牌位":
                         status_type = "常態牌位價"
                         final_bill = 35000
                         law_code = "無（牌位屬常態固定設施，無減免與身份條件限制，依標準收取費用）"
-                        
                     else:
-                        # 其餘設施走正常減免法條流
                         if is_diverse or is_low_income or is_hero or is_no_owner or is_no_name or is_tower_damaged or is_body_donation or (is_ty and age >= 100):
                             status_type = "費用全免"
                             final_bill = 0
@@ -337,7 +358,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                             elif is_no_name: law_code = "第5條第1項第4款：「設籍本市之無名屍體，經查明確無財產者，免收費用。」"
                             elif is_no_owner: law_code = "第5條第1項第5款：「本市轄區內收容之無主墳墓，起掘骨灰骸免收費用。」"
                             elif is_tower_damaged: law_code = "第5條第1項第6款：「原存放桃園市公立納骨塔因更新或毀損無法繼續使用，免收費用。」"
-                            elif is_body_donation: law_code = "第5條第1項第7款：「大體捐贈，免收費用。」"
+                            elif is_body_donation: law_code = "第5條[第1項]第7款：「大體捐贈，免收費用。」"
                             
                         elif is_ty_project_5y or detected_village is not None or is_baby_local_discount or is_ty_project_no_bonus:
                             status_type = "市民價打 5 折"
@@ -387,7 +408,6 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                             final_bill = base_price * 3
                             law_code = "第4條第1項：「非本市市民之使用費，依基本費率之三倍計費。但符合特殊原因之一者，得比照本市市民收費基準收取費用。」"
 
-                    # 輸出視覺面板
                     st.write("---")
                     if "全免" in status_type:
                         st.success(f"🎉 判別結果：【{status_type}】")
