@@ -289,4 +289,129 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                 
                 if facility_type == "牌位":
                     base_price = 35000
-                elif facility_type == "單人骨
+                elif facility_type == "單人骨灰櫃":
+                    if layer_num in [1, 10, 11, 12]:
+                        base_price = 45000
+                    elif layer_num in [2, 3, 8, 9]:
+                        base_price = 50000
+                    elif layer_num in [5, 7]:
+                        base_price = 55000
+                    elif layer_num == 6:
+                        base_price = 60000
+                    else:
+                        is_layer_valid = False
+                elif facility_type == "單人骨骸櫃":
+                    if layer_num == 6:
+                        base_price = 60000
+                    elif layer_num in [1, 5]:
+                        base_price = 70000
+                    elif layer_num in [2, 3]:
+                        base_price = 90000
+                    else:
+                        is_layer_valid = False
+
+                if not is_layer_valid or base_price is None:
+                    st.error(f"🚨 櫃位與設施衝突：您選擇了【{facility_type}】，但輸入的層數第 【{layer_num}】 層並無規劃此設施櫃位，請核對單據！")
+                else:
+                    st.info(f"💡 櫃位自動辨識：第 **{layer_num}** 層、第 **{seq_num}** 號 ｜ 亡者精確年齡為 **{age}** 歲" + (" (⚠ 未滿一歲嬰兒)" if is_under_one else ""))
+                    
+                    local_villages = ['大堀', '大同', '崙坪', '上大', '富源', '藍埔', '金湖', '新坡', '清華']
+                    detected_village = None
+                    if "觀音" in district or "新屋" in district:
+                        for v in local_villages:
+                            if v in village:
+                                detected_village = v
+                                break
+                            
+                    parent_detected_village = None
+                    if "觀音" in parent_district or "新屋" in parent_district:
+                        for v in local_villages:
+                            if v in parent_village:
+                                parent_detected_village = v
+                                break
+
+                    is_baby_local_discount = False
+                    if is_under_one and "桃園" in parent_city and parent_detected_village is not None:
+                        is_baby_local_discount = True
+
+                    is_ty = is_ty_city or detected_village is not None or auto_flag_baby_born or is_baby_local_discount
+
+                    status_type = ""
+                    law_code = ""
+                    final_bill = 0
+                    
+                    if is_diverse or is_low_income or is_hero or is_no_owner or is_no_name or is_tower_damaged or is_body_donation or (is_ty and age >= 100):
+                        status_type = "費用全免"
+                        final_bill = 0
+                        if is_diverse: law_code = "第4條第3項"
+                        elif is_low_income: law_code = "第5條第1項第1款"
+                        elif is_hero: law_code = "第5條第1項第2款"
+                        elif age >= 100: law_code = "第5條第1項第3款"
+                        elif is_no_name: law_code = "第5條第1項第4款"
+                        elif is_no_owner: law_code = "第5條第1項第5款"
+                        elif is_tower_damaged: law_code = "第5條第1項第6款"
+                        elif is_body_donation: law_code = "第5條[第1項]第7款"
+                        
+                    elif is_ty_project_5y or detected_village is not None or is_baby_local_discount or is_ty_project_no_bonus:
+                        status_type = "市民價打 5 折"
+                        final_bill = int(base_price * 0.5)
+                        if is_baby_local_discount: law_code = "第5條第2項第1款但書"
+                        elif detected_village is not None:
+                            if is_under_one:
+                                if "桃園" in parent_city and parent_detected_village is not None:
+                                    law_code = "第5條第2項第1款但書"
+                                else:
+                                    status_type = "常態市民價"
+                                    final_bill = base_price
+                                    law_code = "回歸常態市民基準（不符特定里民5折但書）"
+                            else:
+                                law_code = "第5條第2項第1款"
+                        elif is_ty_project_no_bonus: law_code = "第5條第2項第2款"
+                        elif is_ty_project_5y:
+                            status_type = "外縣市工程遷葬特惠（市民價 5 折）"
+                            law_code = "第4條第2項"
+
+                    elif is_self_dig:
+                        status_type = "市民價打 9 折（自行起掘）"
+                        discount_amount = int(base_price * 0.1)
+                        if discount_amount > 10000:
+                            discount_amount = 10000
+                        final_bill = base_price - discount_amount
+                        law_code = "第5條第3項"
+
+                    elif is_buried_5y or auto_flag_baby_born or is_mutual or is_applicant_ty or is_ty_city:
+                        status_type = "常態市民價（1倍計費）"
+                        final_bill = base_price
+                        if auto_flag_baby_born and not is_ty_city: law_code = "第4條第1項第5款"
+                        elif is_buried_5y and not is_ty_city: law_code = "第4條第1項第4款"
+                        elif is_mutual and not is_ty_city: law_code = "第4條第1項第3款"
+                        elif is_applicant_ty and not is_ty_city: law_code = "第4條第1項第5款"
+                        else: law_code = "第3條附表"
+
+                    else:
+                        status_type = "常態外縣市價（3倍計費）"
+                        final_bill = base_price * 3
+                        law_code = "第4條第1項"
+
+                    st.write("---")
+                    if "全免" in status_type:
+                        st.success(f"🎉 判別結果：【{status_type}】")
+                    elif "外縣市" in status_type:
+                        st.error(f"🚨 判別結果：【{status_type}】")
+                    else:
+                        st.success(f"💰 判別結果：【{status_type}】")
+                        
+                    st.markdown(f"**法規依據**：桃園市公立殯葬設施使用收費標準 **{law_code}**")
+                    
+                    st.markdown(f"""
+                    | 結算項目 | 金額與計費細節 |
+                    | :--- | :--- |
+                    | 申請設施櫃位 | {facility_type} （第 {layer_num} 層 {seq_num} 號） |
+                    | 標準市民基準價 | **NT$ {base_price:,}** |
+                    | 收費身份類別 | {status_type} |
+                    | --- | --- |
+                    | 🎯 **臨櫃實收總金額** | <span style="color:#D32F2F; font-size:24px; font-weight:900;">**NT$ {final_bill:,}**</span> |
+                    """, unsafe_allow_html=True)
+                    
+                    if "全免" in status_type:
+                        st.warning("💡 提示：符合「費用全免」資格者，其塔位使用位置由管理機關指定。若家屬想挑選其他特定位置，須補足差額。")
