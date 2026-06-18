@@ -66,8 +66,34 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 核心邏輯運算區
+# 核心邏輯運算區（🌟 遵循官方圖表修正：精密歷史自適應引擎）
 # ==========================================
+def parse_birth_date_history(era, date_str):
+    date_str = date_str.strip()
+    if not date_str.isdigit() or len(date_str) != 7: return None
+    try:
+        year_offset = int(date_str[0:3])
+        month = int(date_str[3:5])
+        day = int(date_str[5:7])
+        
+        # 依據戶政法規與對照表轉換正確西元年份
+        if era == "中華民國 (常態)":
+            cal_year = year_offset + 1911
+        elif era == "民國前 (歷史導正)":
+            cal_year = 1911 - year_offset  # 例如：民國前3年 -> 1911 - 3 = 1908年
+        elif era == "日本大正 (日治舊簿)":
+            cal_year = year_offset + 1911  # 大正元年為1912
+        elif era == "日本明治 (日治舊簿)":
+            cal_year = year_offset + 1867  # 明治元年為1868
+        elif era == "日本昭和 (日治舊簿)":
+            cal_year = year_offset + 1925  # 昭和元年為1926
+        else:
+            return None
+            
+        return datetime(cal_year, month, day)
+    except ValueError:
+        return None
+
 def parse_roc_date_strict7(roc_str):
     roc_str = roc_str.strip()
     if not roc_str.isdigit() or len(roc_str) != 7: return None
@@ -78,8 +104,9 @@ def parse_roc_date_strict7(roc_str):
         return datetime(roc_year + 1911, month, day)
     except ValueError: return None
 
-def calculate_age_roc(birth_roc_str, death_roc_str):
-    birth_date = parse_roc_date_strict7(birth_roc_str)
+# 年齡相減引擎
+def calculate_age_history(era, birth_str, death_roc_str):
+    birth_date = parse_birth_date_history(era, birth_str)
     death_date = parse_roc_date_strict7(death_roc_str)
     if birth_date is None or death_date is None: return None, None
     try:
@@ -109,7 +136,7 @@ def get_base_price(f_type, c_num):
         elif layer_num in [2, 3]: return 90000, "正常"
     return None, "層級衝突"
 
-# 顯示標題
+# 顯示主標題
 st.title("🏢 桃園市觀音生命紀念園區收費標準")
 st.write("---")
 
@@ -129,11 +156,21 @@ if is_ty_city:
     with col_dist: district = st.text_input("亡者設籍行政區", placeholder="如：觀音區、新屋區")
     with col_vil: village = st.text_input("亡者設籍里", placeholder="如：大堀里、清華里")
 
-col_b, col_d = st.columns(2)
-with col_b: birth_str = st.text_input("亡者出生年月日 (民國7碼)", placeholder="如：0390520")
-with col_d: death_str = st.text_input("亡者死亡年月日 (民國7碼)", placeholder="如：1150615")
+# 歷史年號下拉分流
+st.write("**📅 填寫亡者出生日期與歷史年號分類：**")
+col_era, col_b_str = st.columns([4, 6])
+with col_era:
+    birth_era = st.selectbox(
+        "出生登記年號分類",
+        ["中華民國 (常態)", "民國前 (歷史導正)", "日本大正 (日治舊簿)", "日本明治 (日治舊簿)", "日本昭和 (日治舊簿)"]
+    )
+with col_b_str:
+    birth_str = st.text_input("亡者出生年月日 (純7碼數字)", placeholder="範例：明治42年5月20日請打 0420520")
 
-age, is_under_one = calculate_age_roc(birth_str, death_str)
+death_str = st.text_input("亡者死亡年月日 (民國7碼常態)", placeholder="如：1150615")
+
+# 呼叫歷史精算引擎
+age, is_under_one = calculate_age_history(birth_era, birth_str, death_str)
 
 # 外縣市案件動態觸發審查
 applicant_relation = "無需審查"
@@ -262,10 +299,10 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
     if (is_ty_city and (not district or not village)) or not birth_str or not death_str or not cabinet_number:
         st.error("❌ 錯誤：請務必填寫完整基本資料、日期以及櫃位號碼！")
     elif age is None:
-        st.error("❌ 錯誤：日期格式不正確，請精準輸入『7碼純數字』。")
+        st.error("❌ 錯誤：出生或死亡日期格式不正確，請精準輸入『7碼純數字』。")
     else:
         base_price, check_msg = get_base_price(facility_type, cabinet_number)
-        if check_msg == "編號違規":
+        if check_msg == "編號违规":
             st.error("❌ 錯誤：櫃位號碼違反園區編號規則，請重新修正櫃位編號！")
         elif check_msg == "層級衝突":
             st.error(f"🚨 櫃位與設施衝突：您選擇了【{facility_type}】，目前該層無此設施！")
@@ -340,7 +377,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                 if discount_ratio == 0.5:
                     final_bill = int(base_price * 0.5)
                     if is_baby_local_discount: 
-                        law_code = "第5條 Ment 設籍觀音區、新屋區特定里民連續設籍滿一年以上者減收百分之五十。未滿一歲嬰兒，其法定代理人符合前段規定者，亦同。"
+                        law_code = "第5條第2項第1款但書：「設籍觀音區、新屋區特定里民連續設籍滿一年以上者減收百分之五十。未滿一歲嬰兒，其法定代理人符合前段規定者，亦同。」"
                     elif detected_village:
                         law_code = "第5條第2項第1款：「設籍觀音區、新屋區特定里民連續設籍滿一年以上者，減收百分之五十。」"
                     elif is_ty_project_no_bonus: 
