@@ -224,7 +224,7 @@ else:
     is_body_donation = st.toggle("9. 醫療院所捐贈器官或遺體")
     
     if is_ty_city:
-        is_ty_project_no_bonus = st.toggle("10. 桃園市籍亡者因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取「加發獎勵金」")
+        is_ty_project_no_bonus = st.toggle("10. 桃園市籍亡者因桃園市公墓更新、公共工程 or 都市發展辦理搬遷，未領取「加發獎勵金」")
         
     if not is_ty_city:
         is_out_project_move = st.toggle("11. 外縣市籍亡者，因桃園市公墓更新、公共工程或都市發展，未領取「加發獎勵金」")
