@@ -1,9 +1,9 @@
 name: Keep Streamlit App Alive
-
 on:
   schedule:
-    # 每天國際標準時間 00:00 (台灣時間早上 8:00) 自動執行一次
-    - cron: '0 0 * * *'
+    # 調整為 '0 16 * * *' 
+    # UTC 時間 16:00 = 台灣時間隔天 00:00 (午夜)
+    - cron: '0 16 * * *'
   workflow_dispatch: # 允許手動觸發測試
 
 jobs:
