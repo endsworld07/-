@@ -66,7 +66,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 核心邏輯運算區（🌟 精密對照表換算引擎）
+# 核心邏輯運算區
 # ==========================================
 def parse_birth_date_history(era, date_str):
     date_str = date_str.strip()
@@ -76,23 +76,15 @@ def parse_birth_date_history(era, date_str):
         month = int(date_str[3:5])
         day = int(date_str[5:7])
         
-        # 完美依據您提供的圖表公式換算西元
-        if era == "民國":
-            cal_year = year_offset + 1911
-        elif era == "民前":
-            cal_year = 1911 - year_offset  # 民前3年 -> 1911 - 3 = 1908年
-        elif era == "大正":
-            cal_year = year_offset + 1911  # 大正11年 -> 11 + 1911 = 1922年
-        elif era == "明治":
-            cal_year = year_offset + 1867  # 明治42年 -> 42 + 1867 = 1909年
-        elif era == "昭和":
-            cal_year = year_offset + 1925  # 昭和5年 -> 5 + 1925 = 1930年
-        else:
-            return None
+        if era == "民國": cal_year = year_offset + 1911
+        elif era == "民前": cal_year = 1911 - year_offset
+        elif era == "大正": cal_year = year_offset + 1911
+        elif era == "明治": cal_year = year_offset + 1867
+        elif era == "昭和": cal_year = year_offset + 1925
+        else: return None
             
         return datetime(cal_year, month, day)
-    except ValueError:
-        return None
+    except ValueError: return None
 
 def parse_roc_date_strict7(roc_str):
     roc_str = roc_str.strip()
@@ -104,7 +96,6 @@ def parse_roc_date_strict7(roc_str):
         return datetime(roc_year + 1911, month, day)
     except ValueError: return None
 
-# 年齡精密精算
 def calculate_age_history(era, birth_str, death_roc_str):
     birth_date = parse_birth_date_history(era, birth_str)
     death_date = parse_roc_date_strict7(death_roc_str)
@@ -121,8 +112,7 @@ def get_base_price(f_type, c_num):
     layer_num = int(cab_str[0:2])
     seq_num = int(cab_str[2:4])
     
-    if layer_num == 4 or seq_num > 51 or seq_num in [4, 14, 24, 34, 44]:
-        return None, "編號違規"
+    if layer_num == 4 or seq_num > 51 or seq_num in [4, 14, 24, 34, 44]: return None, "編號違規"
         
     if f_type == "牌位": return 35000, "正常"
     elif f_type == "單人骨灰櫃":
@@ -149,13 +139,29 @@ is_ty_city = (city == "桃園市")
 
 district = ""
 village = ""
+move_in_str = ""
 
 if is_ty_city:
     col_dist, col_vil = st.columns(2)
     with col_dist: district = st.text_input("亡者設籍行政區", placeholder="如：觀音區、新屋區")
     with col_vil: village = st.text_input("亡者設籍里", placeholder="如：大堀里、清華里")
 
-# 🌟【動態美化欄位】：直接在輸入框前放精簡選單，預設停在「民國」
+# 判別特定里民
+local_villages = ['大堀', '大同', '崙坪', '上大', '富源', '藍埔', '金湖', '新坡', '清華']
+is_local_area = "觀音" in district or "新屋" in district
+detected_village = next((v for v in local_villages if v in village), None) if is_local_area else None
+
+# 🌟【特定里民特殊審查區】
+forced_match_by_officer = False
+if detected_village:
+    st.info(f"💡 **特定里民天數核算機制啟動**：請輸入亡者遷入【{district}{detected_village}里】的日期進行比對。")
+    
+    # 彈性開關：處理日治時期、手寫謄本記事模糊無法輸入日期之極端案例
+    forced_match_by_officer = st.checkbox("📜 該案件為日治除戶簿/手寫謄本漏登記事，但經臨櫃查核（舊地名對照或歷史戶籍），確認連續設籍確實滿一年以上。")
+    
+    if not forced_match_by_officer:
+        move_in_str = st.text_input("亡者遷入該特定里日期 (民國7碼數字)", placeholder="例如：1140615")
+
 col_era, col_b_input = st.columns([3, 7])
 with col_era:
     birth_era = st.selectbox("出生年號", ["民國", "民前", "大正", "明治", "昭和"], index=0)
@@ -164,7 +170,6 @@ with col_b_input:
 
 death_str = st.text_input("亡者死亡年月日 (民國7碼常態)", placeholder="如：1150615")
 
-# 精算歷史年齡
 age, is_under_one = calculate_age_history(birth_era, birth_str, death_str)
 
 # 外縣市案件動態觸發審查
@@ -200,6 +205,8 @@ if not is_ty_city:
 # 未滿一歲嬰兒代理人審查
 parent_city = parent_district = parent_village = ""
 auto_flag_baby_born = False
+parent_move_in_str = ""
+parent_forced_match = False
 if age is not None and is_under_one:
     st.write("---")
     st.error("👶 系統偵測：亡者為【未滿一歲嬰兒】！")
@@ -209,6 +216,14 @@ if age is not None and is_under_one:
     with col_pdist: parent_district = st.text_input("法定代理人行政區", placeholder="如：觀音區")
     with col_pvil: parent_village = st.text_input("法定代理人設籍里", placeholder="如：大堀里")
     if "桃園" in parent_city: auto_flag_baby_born = True
+    
+    if "觀音" in parent_district or "新屋" in parent_district:
+        parent_detected_village = next((v for v in local_villages if v in parent_village), None)
+        if parent_detected_village:
+            st.info(f"💡 **法定代理人特定里核算啟動**：請輸入父母遷入該里的日期。")
+            parent_forced_match = st.checkbox("📜 代理人戶籍記事糢糊，但經臨櫃查核確認連續設籍滿一年以上。")
+            if not parent_forced_match:
+                parent_move_in_str = st.text_input("法定代理人遷入特定里日期 (民國7碼)", placeholder="如：1140615")
 
 st.write("---")
 
@@ -250,9 +265,9 @@ else:
     is_low_income = st.toggle("2. 亡者為各縣市列冊之「低收入戶」或「中低收入戶」")
     is_hero = st.toggle("3. 亡者為軍公教人員、民防人員、義警、義消或其他依法令從事公務「因公殉職」人員")
     is_no_owner = st.toggle("4. 依法應行遷葬之無主墳墓")
-    is_no_name = st.toggle("5. 無名屍體、無人認領之屍體或無遺囑且無遺產者")
+    is_no_name = st.toggle("5. 無名屍體、無人認領之屍體 or 無遺囑且無遺產者")
     is_tower_damaged = st.toggle("6. 原存放桃園市公立納骨塔因更新或毀損無法繼續使用")
-    is_project_free = st.toggle("7. 因桃園市公墓更新、公共工程或都市發展辦理搬遷作業，未領取「遷葬補償費」或「救濟金」者【無論本市或外縣市籍】")
+    is_project_free = st.toggle("7. 因桃園市公墓更新、公共工程或都市發展辦理搬遷作業，未領取「遷葬補償費」或「救濟金」者【無論本市 or 外縣市籍】")
     is_special_gov = st.toggle("8. 因天災、事變、不可抗力或特殊原因死亡或家屬生活陷於困難，經桃園市政府專案核准")
     is_body_donation = st.toggle("9. 醫療院所捐贈器官或遺體")
     
@@ -265,7 +280,6 @@ else:
     is_buried_5y = st.toggle("13. 亡者已埋葬於桃園市公、私立公墓5年以上，或墳墓設置條例施行前已埋葬桃園市土地，經戶政查詢無亡者戶籍資料者")
     is_mutual = st.toggle("14. 桃園市籍亡者收費與外縣市公立納骨塔市民相同收費，並經桃園市政府公告互惠者")
 
-    local_villages = ['大堀', '大同', '崙坪', '上大', '富源', '藍埔', '金湖', '新坡', '清華']
     parent_detected_village = next((v for v in local_villages if v in parent_village), None) if ("觀音" in parent_district or "新屋" in parent_district) else None
     is_baby_local_discount = True if (is_under_one and parent_detected_village) else False
     is_ty = is_ty_city or ("觀音" in district or "新屋" in district) or auto_flag_baby_born or is_baby_local_discount or ("桃園" in parent_city)
@@ -294,7 +308,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
     if (is_ty_city and (not district or not village)) or not birth_str or not death_str or not cabinet_number:
         st.error("❌ 錯誤：請務必填寫完整基本資料、日期以及櫃位號碼！")
     elif age is None:
-        st.error("❌ 錯誤：出生或死亡日期格式不正確，請精準輸入『7碼純數字』。")
+        st.error("❌ 錯誤：日期格式不正確，請精準輸入『7碼純數字』。")
     else:
         base_price, check_msg = get_base_price(facility_type, cabinet_number)
         if check_msg == "編號違規":
@@ -308,11 +322,39 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
             
             st.info(f"💡 原始位置辨識：第 **{layer_num}** 層、第 **{seq_num}** 號 ｜ 亡者精確年齡為 **{age}** 歲")
             
-            local_villages = ['大堀', '大同', '崙坪', '上大', '富源', '藍埔', '金湖', '新坡', '清華']
-            detected_village = next((v for v in local_villages if v in village), None) if "觀音" in district or "新屋" in district else None
-            parent_detected_village = next((v for v in local_villages if v in parent_village), None) if "觀音" in parent_district or "新屋" in parent_district else None
+            # 【精密天數審查核算邏輯】
+            is_local_hold_one_year = False
+            days_held = -1
+            death_date_obj = parse_roc_date_strict7(death_str)
             
-            is_baby_local_discount = True if (is_under_one and parent_detected_village) else False
+            if detected_village:
+                if forced_match_by_officer:
+                    # 🌟 外掛開啟：直接放行
+                    is_local_hold_one_year = True
+                elif move_in_str.strip():
+                    move_date_obj = parse_roc_date_strict7(move_in_str)
+                    if move_date_obj and death_date_obj:
+                        days_held = (death_date_obj - move_date_obj).days
+                        if days_held >= 365:
+                            is_local_hold_one_year = True
+
+            # 嬰兒代理人天數核算
+            is_parent_hold_one_year = False
+            if age is not None and is_under_one and ("觀音" in parent_district or "新屋" in parent_district):
+                parent_detected_village = next((v for v in local_villages if v in parent_village), None)
+                if parent_detected_village:
+                    if parent_forced_match:
+                        is_parent_hold_one_year = True
+                    elif parent_move_in_str.strip():
+                        p_move_date_obj = parse_roc_date_strict7(parent_move_in_str)
+                        if p_move_date_obj and death_date_obj:
+                            p_days = (death_date_obj - p_move_date_obj).days
+                            if p_days >= 365:
+                                is_parent_hold_one_year = True
+
+            # 更新動態判別變數
+            is_baby_local_discount = True if (is_under_one and parent_detected_village and is_parent_hold_one_year) else False
+            is_village_discount_approved = True if (detected_village and is_local_hold_one_year) else False
             is_both_out_project_matched = True if (is_out_project_move and is_buried_5y) else False
             is_baby_citizen_discount = True if (is_under_one and "桃園" in parent_city and not parent_detected_village) else False
 
@@ -326,7 +368,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
             discount_reason = "常態市民價"
             
             if facility_type != "牌位":
-                if is_baby_local_discount or detected_village or is_ty_project_no_bonus or is_both_out_project_matched:
+                if is_baby_local_discount or is_village_discount_approved or is_ty_project_no_bonus or is_both_out_project_matched:
                     discount_ratio = 0.5
                     discount_reason = "特定里民/工程減收50%優待價"
                 elif is_self_dig:
@@ -339,14 +381,14 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                     discount_ratio = 3.0
                     discount_reason = "常態外縣市價（3倍計費）"
 
-            # 綜合全免觸發條件
+            # 百歲人瑞全免之連動判定
             is_free_triggered = False
             if facility_type != "牌位":
-                is_hundred_years = (age >= 100 and (is_ty_city or detected_village or auto_flag_baby_born or is_baby_local_discount or ("桃園" in parent_city)))
+                is_hundred_years = (age >= 100 and (is_ty_city or is_village_discount_approved or auto_flag_baby_born or is_baby_local_discount or ("桃園" in parent_city)))
                 if is_diverse or is_low_income or is_hero or is_no_owner or is_no_name or is_tower_damaged or is_project_free or is_special_gov or is_body_donation or is_hundred_years:
                     is_free_triggered = True
 
-            # 執行計費分流與法條文字建置
+            # 執行計費分流
             if facility_type == "牌位":
                 status_type = "常態牌位價"
                 final_bill = 35000
@@ -363,22 +405,22 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                 elif is_no_owner: law_code = "第5條第1項第4款：「依法應行遷葬之無主墳墓，免收費用。」"
                 elif is_no_name: law_code = "第5條第1項第5款：「無名屍體、無人認領之屍體或無遺囑且無遺產者，免收費用。」"
                 elif is_tower_damaged: law_code = "第5條第1項第6款：「原存放桃園市公立納骨塔因更新或毀損無法繼續使用，免收費用。」"
-                elif is_project_free: law_code = "第5條第1項第7款：「不分本市或外縣市亡者，因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取遷葬補償費或救濟金者，免收費用。」"
-                elif is_special_gov: law_code = "第5條第1項第8款：「因天災、事變、不可抗力或特殊原因死亡或家屬生活陷於困難，經桃園市政府專案核准者，免收費用。」"
+                elif is_project_free: law_code = "第5條第1項第7款：「不分本市或外縣市亡者，因公墓搬遷未領取補償費者免收費用。」"
+                elif is_special_gov: law_code = "第5條第1項第8款：「因天災、事變、特殊原因死亡經專案核准者免收費用。」"
                 elif is_body_donation: law_code = "第5條第1項第9款：「醫療院所捐贈器官或遺體，免收費用。」"
 
             else:
                 status_type = discount_reason
                 if discount_ratio == 0.5:
                     final_bill = int(base_price * 0.5)
-                    if is_baby_local_discount: 
-                        law_code = "第5條第2項第1款但書：「設籍觀音區、新屋區特定里民連續設籍滿一年以上者減收百分之五十。未滿一歲嬰兒，其法定代理人符合前段規定者，亦同。」"
-                    elif detected_village:
-                        law_code = "第5條第2項第1款：「設籍觀音區、新屋區特定里民連續設籍滿一年以上者，減收百分之五十。」"
-                    elif is_ty_project_no_bonus: 
-                        law_code = "第5條第2項第2款：「桃園市籍亡者因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取『加發獎勵金』，減收百分之五十。」"
-                    elif is_both_out_project_matched:
-                        law_code = "第4條第2項：「外縣市籍亡者同時符合第1項第4款及第5款規定之情形者，除依照桃園市民收費基準外得申請減收50%費用。」"
+                    if is_baby_local_discount: law_code = "第5條第2項第1款但書：特定里嬰兒代理人連續設籍滿一年減收50%。"
+                    elif is_village_discount_approved:
+                        if forced_match_by_officer:
+                            law_code = "第5條第2項第1款（特殊審查案）：經同仁查核手寫除戶簿本籍或日治舊地名，確認符合連續設籍滿一年以上，給予減收50%優惠。"
+                        else:
+                            law_code = "第5條第2項第1款：「設籍觀音區、新屋區特定里民連續設籍滿一年以上者，減收百分之五十。」"
+                    elif is_ty_project_no_bonus: law_code = "第5條第2項第2款：桃園市籍公墓搬遷未領取獎勵金，減收50%。"
+                    elif is_both_out_project_matched: law_code = "第4條第2項：外縣市籍亡者雙重公共工程搬遷身分，減收50%。"
 
                 elif discount_ratio == 0.9:
                     final_bill = base_price - min(int(base_price * 0.1), 10000)
@@ -386,40 +428,31 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
 
                 elif discount_ratio == 1.0:
                     final_bill = base_price
-                    if is_baby_citizen_discount:
-                        law_code = "第4條第1項第2款延伸：嬰兒設籍前死亡，其法定代理人連續設籍本市滿一年以上，比照市民價收費。"
-                    elif is_out_project_move:
-                        law_code = "第4條第1項第4款：「外縣市籍亡者，因桃園市公墓更新、公共工程或都市發展，未領取『加發獎勵金』，比照本市市民收費基準收取費用。」"
-                    elif not is_ty_city and is_applicant_ty_1y: 
-                        law_code = "第4條第1項第2款：「申請人為亡者之配偶或直系血親，且連續設籍本市滿一年以上，比照本市市民收費基準收取費用。」"
-                    elif auto_flag_baby_born and not is_ty_city: 
-                        law_code = "第4條第1項第5款：「本市出生之嬰兒於未設戶籍前死亡，比照本市市民收費基準收取費用。」"
-                    elif is_buried_5y and not is_ty_city: 
-                        law_code = "第4條第1項第5款：「亡者已埋葬於桃園市公墓5年以上，比照本市市民收費基準收取費用。」"
-                    elif is_mutual and not is_ty_city: 
-                        law_code = "第4條第1項第1款：「經桃園市政府公告互惠者，比照本市市民收費基準收取費用。」"
-                    else: 
-                        law_code = "第3條附表：「設籍本市之市民常態收費基準。」"
+                    # 🌟 自動反向導回常態市民價
+                    if detected_village and not is_local_hold_one_year:
+                        status_type = "設籍未滿一年，降回常態市民價收費"
+                        law_code = f"第5條第2項第1款反向防呆：遷入至死亡僅 {days_held} 天（未滿365天限制），且未啟用特殊人工查核，無法享有特定里優惠，回歸常態本市市民收費基準。"
+                    elif is_baby_citizen_discount: law_code = "第4條第1項第2款延伸：嬰兒設籍前死亡代理人滿一年比照市民價。"
+                    elif is_out_project_move: law_code = "第4條第1項第4款：外縣市籍亡者因公墓搬遷比照市民價。"
+                    elif not is_ty_city and is_applicant_ty_1y: law_code = "第4條第1項第2款：申請人為亡者配偶直系血親滿一年比照市民價。"
+                    else: law_code = "第3條附表：「設籍本市之市民常態收費基準。」"
                 else:
                     final_bill = base_price * 3
+                    if detected_village and not is_local_hold_one_year and not is_ty_city:
+                        status_type = "設籍未滿一年且為外縣市籍，改按外縣市價（3倍）計費"
                     law_code = "第4條第1項：「非本市市民之使用費，依基本費率之三倍計費。」"
 
-            # 【精密優待價級距補差額引擎】
+            # 【自選新櫃位補差額計算】
             display_base_price = base_price 
-            
             if is_free_case and want_upgrade and target_cab.strip():
                 t_price, t_msg = get_base_price(facility_type, target_cab)
                 if t_msg == "正常":
                     price_diff_市民 = t_price - base_price
-                    if price_diff_市民 <= 0:
-                        final_bill = 0 
+                    if price_diff_市民 <= 0: final_bill = 0 
                     else:
-                        if discount_ratio == 0.9:
-                            final_bill = price_diff_市民 - min(int(price_diff_市民 * 0.1), 10000)
-                        elif discount_ratio == 3.0:
-                            final_bill = price_diff_市民 * 3
-                        else:
-                            final_bill = int(price_diff_市民 * discount_ratio)
+                        if discount_ratio == 0.9: final_bill = price_diff_市民 - min(int(price_diff_市民 * 0.1), 10000)
+                        elif discount_ratio == 3.0: final_bill = price_diff_市民 * 3
+                        else: final_bill = int(price_diff_市民 * discount_ratio)
                             
                     status_type = f"費用全免（已辦理第5條第6項補足自選差額 ｜ 特惠連動身份：{discount_reason}）"
                     display_base_price = t_price 
@@ -432,9 +465,14 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
             if not is_upgrade_error:
                 st.write("---")
                 st.success(f"💰 判別結果：【{status_type}】")
-                if law_code:
-                    st.markdown(f"**法規依據**：{law_code}")
+                if law_code: st.markdown(f"**法規依據**：{law_code}")
                 
+                # 自動印出核算天數報告
+                if detected_village and not forced_match_by_officer and days_held != -1:
+                    st.warning(f"📊 設籍天數精密試算：自遷入日至死亡日，共計連續設籍 **{days_held}** 天。 (法規通過標準：須滿 365 天)")
+                elif detected_village and forced_match_by_officer:
+                    st.info("ℹ️ 稽核提示：此案件已啟用【手動強制認證開關】，適用特定里民減免。")
+
                 if is_free_case and want_upgrade and target_cab.strip():
                     st.markdown(f"### 🧮 補足自選差額精密明細：")
                     st.markdown(f"* 機關安排（原指定）櫃位市民價：`NT$ {base_price:,}` (此基準內完全免費)")
