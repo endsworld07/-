@@ -153,7 +153,7 @@ if not is_ty_city:
         is_applicant_ty_1y = st.toggle("申請人（配偶或直系血親）是否已「連續設籍桃園市滿一年以上」？")
     elif applicant_relation == "旁系血親二等親以內":
         st.info("ℹ️ 審查提示：依據法規，旁系二等親提出申請時，須以「亡者無配偶及直系血親」為前提。")
-        has_closer_kin = st.radio("亡者是否有配偶或直系血親？", ["有", "無"], index=0)
+        has_closer_kin = st.radio("亡者是否有配偶或直系血親？", ["原廠", "無"], index=0)
         if has_closer_kin == "無":
             is_no_closer_kin = True
             st.success("💡 審查提示：已確認亡者無配偶及直系血親，符合旁系二等親代之申請資格。請確認下方申請人設籍是否滿一年。")
@@ -224,7 +224,7 @@ else:
     is_body_donation = st.toggle("9. 醫療院所捐贈器官或遺體")
     
     if is_ty_city:
-        is_ty_project_no_bonus = st.toggle("10. 桃園市籍亡者因桃園市公墓更新、公共工程 or 都市發展辦理搬遷，未領取「加發獎勵金」")
+        is_ty_project_no_bonus = st.toggle("10. 桃園市籍亡者因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取「加發獎勵金」")
         
     if not is_ty_city:
         is_out_project_move = st.toggle("11. 外縣市籍亡者，因桃園市公墓更新、公共工程或都市發展，未領取「加發獎勵金」")
@@ -337,6 +337,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                 elif is_body_donation: law_code = "第5條第1項第9款：「醫療院所捐贈器官或遺體，免收費用。」"
 
             else:
+                status_type = discount_reason
                 if discount_ratio == 0.5:
                     final_bill = int(base_price * 0.5)
                 elif discount_ratio == 0.9:
@@ -372,10 +373,12 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                     if t_msg == "編號違規": st.error("❌ 錯誤：自選新櫃位號碼違規，無法進行差額計算！")
                     elif t_msg == "層級衝突": st.error("❌ 錯誤：自選新櫃位層級與設施種類衝突！")
 
+            # 🌟 核心修正：將渲染結果的程式碼移到正確的縮排層級（即 if not is_upgrade_error 的大區塊中）
             if not is_upgrade_error:
                 st.write("---")
                 st.success(f"💰 判別結果：【{status_type}】")
-                st.markdown(f"**法規依據**：{law_code}")
+                if law_code:
+                    st.markdown(f"**法規依據**：{law_code}")
                 
                 if is_free_case and want_upgrade and target_cab.strip():
                     st.markdown(f"### 🧮 補足自選差額精密明細：")
@@ -385,6 +388,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                     if discount_ratio != 1.0 and (t_price - base_price) > 0:
                         st.markdown(f"* 🌟 **優待身分連動折減**：此案符合 `{discount_reason}`，自選升級價差部分同享 **{int(discount_ratio*100)}%** 收費優惠！")
 
+                # 正確渲染最終結算表格與總金額
                 st.markdown(f"""
                 | 結算項目 | 金額與計費細節 |
                 | :--- | :--- |
