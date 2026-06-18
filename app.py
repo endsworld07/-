@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime
 
 # 設定網頁標題與排版佈局
-st.set_page_config(page_title="桃園市觀音生命紀念園園區收費標準", page_icon="🏢", layout="centered")
+st.set_page_config(page_title="桃園市觀音生命紀念園區收費標準", page_icon="🏢", layout="centered")
 
 # ==========================================
 # 🎨 終極視覺優化區（徹底洗白所有容器、拔除一切外框與殘影）
@@ -98,6 +98,12 @@ def calculate_age_roc(birth_roc_str, death_roc_str):
         if (death_date.month, death_date.day) < (birth_date.month, birth_date.day): age -= 1
         return age, (death_date - birth_date).days < 365
     except Exception: return None, None
+
+# ==========================================
+# 🌟 恢復主標題顯示
+# ==========================================
+st.title("🏢 桃園市觀音生命紀念園區收費標準")
+st.write("---")
 
 # ==========================================
 # 1. 填寫亡者基本資料
@@ -205,7 +211,7 @@ if facility_type == "牌位":
     is_diverse = is_low_income = is_hero = is_no_owner = is_no_name = is_tower_damaged = is_project_free = is_special_gov = is_body_donation = False
     is_ty_project_no_bonus = is_out_project_move = is_out_project_5y = is_self_dig = is_buried_5y = is_mutual = False
 else:
-    # 1~9 條常態開關顯示 (已徹底刪除原提示文字)
+    # 1~9 條常態開關顯示 (原提示文字已徹底拔除)
     is_diverse = st.toggle("1. 非桃園市亡者使用多元葬法專區")
     is_low_income = st.toggle("2. 亡者為各縣市列冊之「低收入戶」或「中低收入戶」")
     is_hero = st.toggle("3. 亡者為軍公教人員、民防人員、義警、義消或其他依法令從事公務「因公殉職」人員")
@@ -229,7 +235,7 @@ else:
         is_out_project_5y = st.toggle("12. 該外縣市籍亡者原已「埋葬於桃園市公、私立公墓 5 年以上」")
     # ───────────────────────────────────
     
-    # 13~15 條常態開關顯示（🌟 核心修正：已完全剔除第13條括號內的額外說明文字）
+    # 13~15 條常態開關顯示（已徹底剔除括號內說明文字）
     is_self_dig = st.toggle("13. 屬於桃園市禁葬公墓「自行起掘」遷葬至桃園市公立納骨塔")
     is_buried_5y = st.toggle("14. 亡者已埋葬於桃園市公、私立公墓5年以上，或墳墓設置條例施行前已埋葬桃園市土地，經戶政查詢無亡者戶籍資料者")
     is_mutual = st.toggle("15. 桃園市籍亡者收費與外縣市公立納骨塔市民相同收費，並經桃園市政府公告互惠者")
