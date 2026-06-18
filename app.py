@@ -66,7 +66,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 核心邏輯運算區（🌟 遵循官方圖表修正：精密歷史自適應引擎）
+# 核心邏輯運算區（🌟 精密對照表換算引擎）
 # ==========================================
 def parse_birth_date_history(era, date_str):
     date_str = date_str.strip()
@@ -76,17 +76,17 @@ def parse_birth_date_history(era, date_str):
         month = int(date_str[3:5])
         day = int(date_str[5:7])
         
-        # 依據戶政法規與對照表轉換正確西元年份
-        if era == "中華民國 (常態)":
+        # 完美依據您提供的圖表公式換算西元
+        if era == "民國":
             cal_year = year_offset + 1911
-        elif era == "民國前 (歷史導正)":
-            cal_year = 1911 - year_offset  # 例如：民國前3年 -> 1911 - 3 = 1908年
-        elif era == "日本大正 (日治舊簿)":
-            cal_year = year_offset + 1911  # 大正元年為1912
-        elif era == "日本明治 (日治舊簿)":
-            cal_year = year_offset + 1867  # 明治元年為1868
-        elif era == "日本昭和 (日治舊簿)":
-            cal_year = year_offset + 1925  # 昭和元年為1926
+        elif era == "民前":
+            cal_year = 1911 - year_offset  # 民前3年 -> 1911 - 3 = 1908年
+        elif era == "大正":
+            cal_year = year_offset + 1911  # 大正11年 -> 11 + 1911 = 1922年
+        elif era == "明治":
+            cal_year = year_offset + 1867  # 明治42年 -> 42 + 1867 = 1909年
+        elif era == "昭和":
+            cal_year = year_offset + 1925  # 昭和5年 -> 5 + 1925 = 1930年
         else:
             return None
             
@@ -104,7 +104,7 @@ def parse_roc_date_strict7(roc_str):
         return datetime(roc_year + 1911, month, day)
     except ValueError: return None
 
-# 年齡相減引擎
+# 年齡精密精算
 def calculate_age_history(era, birth_str, death_roc_str):
     birth_date = parse_birth_date_history(era, birth_str)
     death_date = parse_roc_date_strict7(death_roc_str)
@@ -136,7 +136,6 @@ def get_base_price(f_type, c_num):
         elif layer_num in [2, 3]: return 90000, "正常"
     return None, "層級衝突"
 
-# 顯示主標題
 st.title("🏢 桃園市觀音生命紀念園區收費標準")
 st.write("---")
 
@@ -156,20 +155,16 @@ if is_ty_city:
     with col_dist: district = st.text_input("亡者設籍行政區", placeholder="如：觀音區、新屋區")
     with col_vil: village = st.text_input("亡者設籍里", placeholder="如：大堀里、清華里")
 
-# 歷史年號下拉分流
-st.write("**📅 填寫亡者出生日期與歷史年號分類：**")
-col_era, col_b_str = st.columns([4, 6])
+# 🌟【動態美化欄位】：直接在輸入框前放精簡選單，預設停在「民國」
+col_era, col_b_input = st.columns([3, 7])
 with col_era:
-    birth_era = st.selectbox(
-        "出生登記年號分類",
-        ["中華民國 (常態)", "民國前 (歷史導正)", "日本大正 (日治舊簿)", "日本明治 (日治舊簿)", "日本昭和 (日治舊簿)"]
-    )
-with col_b_str:
-    birth_str = st.text_input("亡者出生年月日 (純7碼數字)", placeholder="範例：明治42年5月20日請打 0420520")
+    birth_era = st.selectbox("出生年號", ["民國", "民前", "大正", "明治", "昭和"], index=0)
+with col_b_input:
+    birth_str = st.text_input("亡者出生年月日 (純7碼數字)", placeholder="如：0390520")
 
 death_str = st.text_input("亡者死亡年月日 (民國7碼常態)", placeholder="如：1150615")
 
-# 呼叫歷史精算引擎
+# 精算歷史年齡
 age, is_under_one = calculate_age_history(birth_era, birth_str, death_str)
 
 # 外縣市案件動態觸發審查
@@ -302,7 +297,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
         st.error("❌ 錯誤：出生或死亡日期格式不正確，請精準輸入『7碼純數字』。")
     else:
         base_price, check_msg = get_base_price(facility_type, cabinet_number)
-        if check_msg == "編號违规":
+        if check_msg == "編號違規":
             st.error("❌ 錯誤：櫃位號碼違反園區編號規則，請重新修正櫃位編號！")
         elif check_msg == "層級衝突":
             st.error(f"🚨 櫃位與設施衝突：您選擇了【{facility_type}】，目前該層無此設施！")
