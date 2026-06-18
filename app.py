@@ -62,6 +62,14 @@ st.markdown("""
         border-radius: 8px !important;
         border: 2px solid #1E3D59 !important;
     }
+    
+    .preview-box {
+        background-color: #F4F7F6 !important;
+        border-left: 5px solid #1E3D59 !important;
+        padding: 15px !important;
+        border-radius: 4px !important;
+        margin-bottom: 15px !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -153,7 +161,7 @@ if not is_ty_city:
         is_applicant_ty_1y = st.toggle("申請人（配偶或直系血親）是否已「連續設籍桃園市滿一年以上」？")
     elif applicant_relation == "旁系血親二等親以內":
         st.info("ℹ️ 審查提示：依據法規，旁系二等親提出申請時，須以「亡者無配偶及直系血親」為前提。")
-        has_closer_kin = st.radio("亡者是否有配偶或直系血親？", ["原廠", "無"], index=0)
+        has_closer_kin = st.radio("亡者是否有配偶或直系血親？", ["有", "無"], index=0)
         if has_closer_kin == "無":
             is_no_closer_kin = True
             st.success("💡 審查提示：已確認亡者無配偶及直系血親，符合旁系二等親代之申請資格。請確認下方申請人設籍是否滿一年。")
@@ -197,6 +205,38 @@ if cabinet_number.strip():
         elif seq_num > 51: st.error(f"🚨 櫃位編號即時警示：該層櫃位號碼最多只到 51 號，您輸入了 {seq_num} 號已超出範圍！")
         elif seq_num in [4, 14, 24, 34, 44]: st.error(f"🚨 櫃位編號即時警示：紀念園區不設尾數為 4 的櫃位，請重新確認！")
 
+# 【即時動態預覽看板】
+if birth_str and death_str and cabinet_number.strip() and age is not None:
+    p_price, p_msg = get_base_price(facility_type, cabinet_number)
+    if p_msg == "正常":
+        p_ratio = 1.0
+        p_reason = "本市普通價"
+        local_vills = ['大堀', '大同', '崙坪', '上大', '富源', '藍埔', '金湖', '新坡', '清華']
+        det_v = next((v for v in local_vills if v in village), None) if "觀音" in district or "新屋" in district else None
+        p_det_v = next((v for v in local_vills if v in parent_village), None) if "觀音" in parent_district or "新屋" in parent_district else None
+        is_b_local = True if (is_under_one and p_det_v) else False
+        is_b_city = True if (is_under_one and "桃園" in parent_city and not p_det_v) else False
+        
+        if facility_type != "牌位":
+            if is_b_local or det_v:
+                p_ratio = 0.5
+                p_reason = "特定里民優待 (5折)"
+            elif is_ty_city or auto_flag_baby_born or is_b_city or (not is_ty_city and is_applicant_ty_1y and (applicant_relation in ["配偶", "直系血親"] or (applicant_relation == "旁系血親二等親以內" and is_no_closer_kin))):
+                p_ratio = 1.0
+                p_reason = "常態市民價 (1倍)"
+            else:
+                p_ratio = 3.0
+                p_reason = "外縣市常態價 (3倍)"
+        
+        est_base = int(p_price * p_ratio) if p_ratio == 0.5 else (p_price * 3 if p_ratio == 3.0 else p_price)
+        st.markdown(f"""
+        <div class="preview-box">
+            <span style="color:#1E3D59; font-weight:800; font-size:15px;">📊 臨櫃即時預覽：</span>
+            亡者年齡 <b>{age}</b> 歲 ｜ 身分識別：<span style="color:#2E7D32;"><b>{p_reason}</b></span> ｜ 原始基準市民價：<b>NT$ {p_price:,}</b> 
+            (未計特殊減免前預估：<b>NT$ {est_base:,}</b>)
+        </div>
+        """, unsafe_allow_html=True)
+
 st.write("---")
 
 # ==========================================
@@ -211,7 +251,7 @@ is_diverse = is_low_income = is_hero = is_no_owner = is_no_name = is_tower_damag
 is_ty_project_no_bonus = is_out_project_move = is_self_dig = is_buried_5y = is_mutual = False
 
 if facility_type == "牌位":
-    st.caption("💡 提示：目前選擇【牌位】，法規規定牌位為常態固定收費，不適用任何特殊減免優待。")
+    st.caption("💡 提示：目前選擇【牌位】，法規規定牌位為常態固定收費，不適用 any 特殊減免優待。")
 else:
     is_diverse = st.toggle("1. 非桃園市亡者使用多元葬法專區")
     is_low_income = st.toggle("2. 亡者為各縣市列冊之「低收入戶」或「中低收入戶」")
@@ -225,7 +265,6 @@ else:
     
     if is_ty_city:
         is_ty_project_no_bonus = st.toggle("10. 桃園市籍亡者因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取「加發獎勵金」")
-        
     if not is_ty_city:
         is_out_project_move = st.toggle("11. 外縣市籍亡者，因桃園市公墓更新、公共工程或都市發展，未領取「加發獎勵金」")
     
@@ -233,13 +272,11 @@ else:
     is_buried_5y = st.toggle("13. 亡者已埋葬於桃園市公、私立公墓5年以上，或墳墓設置條例施行前已埋葬桃園市土地，經戶政查詢無亡者戶籍資料者")
     is_mutual = st.toggle("14. 桃園市籍亡者收費與外縣市公立納骨塔市民相同收費，並經桃園市政府公告互惠者")
 
-    # 🛸 智慧解析代理人身分基準
     local_villages = ['大堀', '大同', '崙坪', '上大', '富源', '藍埔', '金湖', '新坡', '清華']
     parent_detected_village = next((v for v in local_villages if v in parent_village), None) if ("觀音" in parent_district or "新屋" in parent_district) else None
     is_baby_local_discount = True if (is_under_one and parent_detected_village) else False
     is_ty = is_ty_city or ("觀音" in district or "新屋" in district) or auto_flag_baby_born or is_baby_local_discount or ("桃園" in parent_city)
 
-    # 檢查是否滿百歲
     is_hundred_years = False
     if age is not None and age >= 100 and is_ty:
         is_hundred_years = True
@@ -250,7 +287,6 @@ else:
         st.write("---")
         st.warning("⚠️ **依據第5條第6項**：免收費用者得使用之位置，由管理機關指定之，但得補足差額後使用其他位置。")
         want_upgrade = st.toggle("⚙️ 家屬欲自行挑選特定櫃位（辦理補足差額）")
-        
         if want_upgrade:
             target_cab = st.text_input("請輸入家屬自行選定之「自選新櫃位號碼後4碼」", value="", placeholder="如：0606")
 
@@ -260,13 +296,16 @@ st.write("---")
 # 4. 開始判定結果與金額自動計算
 # ==========================================
 if st.button("🔍 開始自動判別與計算收費金額", use_container_width=True):
+    # 🌟 核心修正：將變數初始化提到最外圍，防止變數未定義錯誤
+    is_upgrade_error = False
+
     if (is_ty_city and (not district or not village)) or not birth_str or not death_str or not cabinet_number:
         st.error("❌ 錯誤：請務必填寫完整基本資料、日期以及櫃位號碼！")
     elif age is None:
         st.error("❌ 錯誤：日期格式不正確，請精準輸入『7碼純數字』。")
     else:
         base_price, check_msg = get_base_price(facility_type, cabinet_number)
-        if check_msg == "編號違規":
+        if check_msg == "編號微規":
             st.error("❌ 錯誤：櫃位號碼違反園區編號規則，請重新修正櫃位編號！")
         elif check_msg == "層級衝突":
             st.error(f"🚨 櫃位與設施衝突：您選擇了【{facility_type}】，目前該層無此設施！")
@@ -315,11 +354,11 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                 if is_diverse or is_low_income or is_hero or is_no_owner or is_no_name or is_tower_damaged or is_project_free or is_special_gov or is_body_donation or is_hundred_years:
                     is_free_triggered = True
 
-            # 執行計費分流
+            # 執行計費分流與法條文字建置
             if facility_type == "牌位":
                 status_type = "常態牌位價"
                 final_bill = 35000
-                law_code = "無（牌位屬常態固定設施，不開放特殊優待）"
+                law_code = "第3條附表：「牌位屬常態固定設施，依附表基準固定收費，不開放特殊身分優待減免。」"
             
             elif is_free_triggered:
                 status_type = "費用全免"
@@ -340,22 +379,46 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                 status_type = discount_reason
                 if discount_ratio == 0.5:
                     final_bill = int(base_price * 0.5)
+                    if is_baby_local_discount: 
+                        law_code = "第5條第2項第1款但書：「設籍觀音區、新屋區特定里民連續設籍滿一年以上者減收百分之五十。未滿一歲嬰兒，其法定代理人符合前段規定者，亦同。」"
+                    elif detected_village:
+                        law_code = "第5條第2項第1款：「設籍觀音區、新屋區特定里民連續設籍滿一年以上者，減收百分之五十。」"
+                    elif is_ty_project_no_bonus: 
+                        law_code = "第5條第2項第2款：「桃園市籍亡者因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取『加發獎勵金』，減收百分之五十。」"
+                    elif is_both_out_project_matched:
+                        law_code = "第4條第2項：「外縣市籍亡者同時符合第1項第4款及第5款規定之情形者，除依照桃園市民收費基準外得申請減收50%費用。」"
+
                 elif discount_ratio == 0.9:
                     final_bill = base_price - min(int(base_price * 0.1), 10000)
+                    law_code = "第5條第3項：「屬於桃園市禁葬公墓自行起掘移入者，減收百分之十，最高上限一萬元。」"
+
                 elif discount_ratio == 1.0:
                     final_bill = base_price
+                    if is_baby_citizen_discount:
+                        law_code = "第4條第1項第2款延伸：嬰兒設籍前死亡，其法定代理人連續設籍本市滿一年以上，比照市民價收費。"
+                    elif is_out_project_move:
+                        law_code = "第4條第1項第4款：「外縣市籍亡者，因桃園市公墓更新、公共工程或都市發展，未領取『加發獎勵金』，比照本市市民收費基準收取費用。」"
+                    elif not is_ty_city and is_applicant_ty_1y: 
+                        law_code = "第4條第1項第2款：「申請人為亡者之配偶或直系血親，且連續設籍本市滿一年以上，比照本市市民收費基準收取費用。」"
+                    elif auto_flag_baby_born and not is_ty_city: 
+                        law_code = "第4條第1項第5款：「本市出生之嬰兒於未設戶籍前死亡，比照本市市民收費基準收取費用。」"
+                    elif is_buried_5y and not is_ty_city: 
+                        law_code = "第4條第1項第5款：「亡者已埋葬於桃園市公墓5年以上，比照本市市民收費基準收取費用。」"
+                    elif is_mutual and not is_ty_city: 
+                        law_code = "第4條第1項第1款：「經桃園市政府公告互惠者，比照本市市民收費基準收取費用。」"
+                    else: 
+                        law_code = "第3條附表：「設籍本市之市民常態收費基準。」"
                 else:
                     final_bill = base_price * 3
+                    law_code = "第4條第1項：「非本市市民之使用費，依基本費率之三倍計費。」"
 
-            # 🚀【精密優待價級距補差額引擎】
-            is_upgrade_error = False
+            # 【精密優待價級距補差額引擎】
             display_base_price = base_price 
             
             if is_free_case and want_upgrade and target_cab.strip():
                 t_price, t_msg = get_base_price(facility_type, target_cab)
                 if t_msg == "正常":
                     price_diff_市民 = t_price - base_price
-                    
                     if price_diff_市民 <= 0:
                         final_bill = 0 
                     else:
@@ -373,7 +436,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                     if t_msg == "編號違規": st.error("❌ 錯誤：自選新櫃位號碼違規，無法進行差額計算！")
                     elif t_msg == "層級衝突": st.error("❌ 錯誤：自選新櫃位層級與設施種類衝突！")
 
-            # 🌟 核心修正：將渲染結果的程式碼移到正確的縮排層級（即 if not is_upgrade_error 的大區塊中）
+            # 🌟【渲染結果輸出區】
             if not is_upgrade_error:
                 st.write("---")
                 st.success(f"💰 判別結果：【{status_type}】")
@@ -388,7 +451,6 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                     if discount_ratio != 1.0 and (t_price - base_price) > 0:
                         st.markdown(f"* 🌟 **優待身分連動折減**：此案符合 `{discount_reason}`，自選升級價差部分同享 **{int(discount_ratio*100)}%** 收費優惠！")
 
-                # 正確渲染最終結算表格與總金額
                 st.markdown(f"""
                 | 結算項目 | 金額與計費細節 |
                 | :--- | :--- |
