@@ -5,7 +5,7 @@ from datetime import datetime
 st.set_page_config(page_title="桃園市觀音生命紀念園區收費標準", page_icon="🏢", layout="centered")
 
 # ==========================================
-# 🎨 終極視覺優化區（徹底洗白所有容器、拔除一切外框、主標題防斷行）
+# 🎨 終極視覺優化區（徹底洗白所有容器、拔除一切外框、主標題動態自適應放大）
 # ==========================================
 st.markdown("""
     <style>
@@ -59,16 +59,22 @@ st.markdown("""
         outline: none !important;
     }
     
-    /* 🌟 核心修正：主標題字體縮小至 24px，並強制不換行，確保手機與電腦都完美排在一行 */
+    /* 🌟 核心修正：主標題改用 vw 動態放大字體，且絕不切字，在各種螢幕均能完美完整顯示 */
     h1 { 
         color: #1E3D59 !important; 
         font-weight: 800 !important; 
-        font-size: 24px !important; 
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
+        font-size: calc(18px + 1vw) !important; /* 電腦版維持大字，手機版動態放大不切字 */
+        line-height: 1.3 !important;
+        word-break: keep-all !important;
+        text-align: left !important;
         margin-bottom: 5px !important; 
     }
+    @media screen and (max-width: 600px) {
+        h1 {
+            font-size: 6vw !important; /* 確保小螢幕手機上字體夠大且剛好完整排滿 */
+        }
+    }
+
     h2 { color: #1E3D59 !important; font-size: 21px !important; font-weight: 700 !important; border-bottom: 2px solid #1E3D59; padding-bottom: 6px; margin-top: 30px !important; }
     
     /* 計算按鈕 */
@@ -108,7 +114,7 @@ def calculate_age_roc(birth_roc_str, death_roc_str):
     except Exception: return None, None
 
 # ==========================================
-# 恢復主標題顯示（已透過上方的 CSS 完美限制在同一行）
+# 恢復主標題顯示（已透過上方的 RWD CSS 優化字體與防切線）
 # ==========================================
 st.title("🏢 桃園市觀音生命紀念園區收費標準")
 st.write("---")
@@ -161,7 +167,7 @@ if city.strip() and not is_ty_city:
         
     elif applicant_relation == "旁系血親二等親以內":
         st.info("ℹ️ 審查提示：依據法規，旁系二等親提出申請時，須以「亡者無配偶及直系血親」為前提。")
-        has_closer_kin = st.radio("亡者是否有配偶或直系血親？", ["有", "無"], index=0)
+        has_closer_kin = st.radio("亡者是否有配偶或直系血親？", ["原", "無"], index=0)
         
         if has_closer_kin == "無":
             is_no_closer_kin = True
@@ -215,7 +221,7 @@ st.write("---")
 st.header("3. 勾選符合之特殊減免條件")
 
 if facility_type == "牌位":
-    st.caption("💡 提示：目前選擇【牌位】，法規規定牌位為常態固定收費，不適用 any 特殊減免優待。")
+    st.caption("💡 提示：目前選擇【牌位】，法規規定牌位為常態固定收費，不適用任何特殊減免優待。")
     is_diverse = is_low_income = is_hero = is_no_owner = is_no_name = is_tower_damaged = is_project_free = is_special_gov = is_body_donation = False
     is_ty_project_no_bonus = is_out_project_move = is_out_project_5y = is_self_dig = is_buried_5y = is_mutual = False
 else:
@@ -336,7 +342,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                                     else:
                                         status_type = "常態市民價"
                                         final_bill = base_price
-                                        law_code = "第4條 Sandy 第1項第2款：「在本市出生未設籍前死亡之嬰兒，比照本市市民收費基準收取費用。」"
+                                        law_code = "第4條第1項第2款：「在本市出生未設籍前死亡之嬰兒，比照本市市民收費基準收取費用。」"
                                 else: 
                                     status_type = "特定里民優待價（市民價打 5 折）"
                                     law_code = "第5條第2項第1款：「設籍觀音區、新屋區特定里民連續設籍滿一年以上者，減收百分之五十。」"
