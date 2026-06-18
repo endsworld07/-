@@ -5,7 +5,7 @@ from datetime import datetime
 st.set_page_config(page_title="桃園市觀音生命紀念園區收費標準", page_icon="🏢", layout="centered")
 
 # ==========================================
-# 🎨 終極視覺優化區（徹底洗白所有容器、拔除一切外框與殘影）
+# 🎨 終極視覺優化區（徹底洗白所有容器、拔除一切外框、主標題防斷行）
 # ==========================================
 st.markdown("""
     <style>
@@ -59,8 +59,16 @@ st.markdown("""
         outline: none !important;
     }
     
-    /* 主副標題 */
-    h1 { color: #1E3D59 !important; font-weight: 800 !important; margin-bottom: 5px !important; }
+    /* 🌟 核心修正：主標題字體縮小至 24px，並強制不換行，確保手機與電腦都完美排在一行 */
+    h1 { 
+        color: #1E3D59 !important; 
+        font-weight: 800 !important; 
+        font-size: 24px !important; 
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin-bottom: 5px !important; 
+    }
     h2 { color: #1E3D59 !important; font-size: 21px !important; font-weight: 700 !important; border-bottom: 2px solid #1E3D59; padding-bottom: 6px; margin-top: 30px !important; }
     
     /* 計算按鈕 */
@@ -100,7 +108,7 @@ def calculate_age_roc(birth_roc_str, death_roc_str):
     except Exception: return None, None
 
 # ==========================================
-# 🌟 恢復主標題顯示
+# 恢復主標題顯示（已透過上方的 CSS 完美限制在同一行）
 # ==========================================
 st.title("🏢 桃園市觀音生命紀念園區收費標準")
 st.write("---")
@@ -207,11 +215,11 @@ st.write("---")
 st.header("3. 勾選符合之特殊減免條件")
 
 if facility_type == "牌位":
-    st.caption("💡 提示：目前選擇【牌位】，法規規定牌位為常態固定收費，不適用任何特殊減免優待。")
+    st.caption("💡 提示：目前選擇【牌位】，法規規定牌位為常態固定收費，不適用 any 特殊減免優待。")
     is_diverse = is_low_income = is_hero = is_no_owner = is_no_name = is_tower_damaged = is_project_free = is_special_gov = is_body_donation = False
     is_ty_project_no_bonus = is_out_project_move = is_out_project_5y = is_self_dig = is_buried_5y = is_mutual = False
 else:
-    # 1~9 條常態開關顯示 (原提示文字已徹底拔除)
+    # 1~9 條常態開關顯示
     is_diverse = st.toggle("1. 非桃園市亡者使用多元葬法專區")
     is_low_income = st.toggle("2. 亡者為各縣市列冊之「低收入戶」或「中低收入戶」")
     is_hero = st.toggle("3. 亡者為軍公教人員、民防人員、義警、義消或其他依法令從事公務「因公殉職」人員")
@@ -226,7 +234,7 @@ else:
     is_out_project_move = False
     is_out_project_5y = False
 
-    # ─── 🛸 智慧自適應完全隱藏流（精準逐字文字） ───
+    # ─── 🛸 智慧自適應完全隱藏流 ───
     if is_input_empty or is_ty_city:
         is_ty_project_no_bonus = st.toggle("10. 桃園市籍亡者因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取「加發獎勵金」")
         
@@ -235,7 +243,7 @@ else:
         is_out_project_5y = st.toggle("12. 該外縣市籍亡者原已「埋葬於桃園市公、私立公墓 5 年以上」")
     # ───────────────────────────────────
     
-    # 13~15 條常態開關顯示（已徹底剔除括號內說明文字）
+    # 13~15 條常態開關顯示
     is_self_dig = st.toggle("13. 屬於桃園市禁葬公墓「自行起掘」遷葬至桃園市公立納骨塔")
     is_buried_5y = st.toggle("14. 亡者已埋葬於桃園市公、私立公墓5年以上，或墳墓設置條例施行前已埋葬桃園市土地，經戶政查詢無亡者戶籍資料者")
     is_mutual = st.toggle("15. 桃園市籍亡者收費與外縣市公立納骨塔市民相同收費，並經桃園市政府公告互惠者")
@@ -328,7 +336,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                                     else:
                                         status_type = "常態市民價"
                                         final_bill = base_price
-                                        law_code = "第4條第1項第2款：「在本市出生未設籍前死亡之嬰兒，比照本市市民收費基準收取費用。」"
+                                        law_code = "第4條 Sandy 第1項第2款：「在本市出生未設籍前死亡之嬰兒，比照本市市民收費基準收取費用。」"
                                 else: 
                                     status_type = "特定里民優待價（市民價打 5 折）"
                                     law_code = "第5條第2項第1款：「設籍觀音區、新屋區特定里民連續設籍滿一年以上者，減收百分之五十。」"
@@ -337,7 +345,7 @@ if st.button("🔍 開始自動判別與計算收費金額", use_container_width
                                 law_code = "第5條第2項第2款：「桃園市籍亡者因桃園市公墓更新、公共工程或都市發展辦理搬遷，未領取『加發獎勵金』，減收百分之五十。」"
                             elif is_both_out_project_matched:
                                 status_type = "外縣市工程搬遷特惠價（市民價再打 5 折）"
-                                law_code = "第4條第2項：「外縣市籍亡者同時符合第1項第4款（埋葬公墓5年以上）及第5款（外縣市籍因工程搬遷未領獎勵金）特殊原因者，得比照本市市民收費基準之百分之五十收取費用。」"
+                                law_code = "第4條第2項：「外縣市籍亡者同時符合第1項第4款及第5款特殊原因者，得比照本市市民收費基準之百分之五十收取費用。」"
 
                         elif is_self_dig:
                             status_type = "市民價打 9 折（自行起掘）"
