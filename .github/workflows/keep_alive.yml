@@ -1,14 +1,18 @@
 name: Keep Streamlit App Alive
+
 on:
   schedule:
-    # 調整為 '0 16 * * *' 
-    # UTC 時間 16:00 = 台灣時間隔天 00:00 (午夜)
-    - cron: '0 16 * * *'
-  workflow_dispatch: # 允許手動觸發測試
+    # 這裡使用 Cron 表達式。UTC 時間的每 4 小時執行一次（大約是台灣時間的每 4 小時）
+    # 因為 GitHub Actions 的排程有時會延遲，設定每 4 小時能確保在 12 小時的睡眠限制內一定會觸發
+    - cron: '0 */4 * * *'
+  
+  # 這個設定允許你隨時手動點擊按鈕來測試觸發
+  workflow_dispatch:
 
 jobs:
-  ping:
+  ping-app:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Streamlit App
-        run: curl -I https://lrrwnorhkrxze5ujvwas6f.streamlit.app/
+      - name: Send a request to Streamlit app
+        run: |
+          curl -sI https://lrrwnorhkrxze5ujvwas6f.streamlit.app/ | head -n 1
