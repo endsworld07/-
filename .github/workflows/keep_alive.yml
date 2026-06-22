@@ -1,18 +1,25 @@
-name: Keep Streamlit App Alive
+name: Keep Streamlit App Alive via Auto-Commit
 
 on:
   schedule:
-    # 這裡使用 Cron 表達式。UTC 時間的每 4 小時執行一次（大約是台灣時間的每 4 小時）
-    # 因為 GitHub Actions 的排程有時會延遲，設定每 4 小時能確保在 12 小時的睡眠限制內一定會觸發
-    - cron: '0 */4 * * *'
-  
-  # 這個設定允許你隨時手動點擊按鈕來測試觸發
+    # 每 6 小時自動執行一次
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
-  ping-app:
+  auto-commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Send a request to Streamlit app
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Update timestamp file
         run: |
-          curl -sI https://lrrwnorhkrxze5ujvwas6f.streamlit.app/ | head -n 1
+          echo "Last pinged at: $(date)" > ping.txt
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "actions@github.com"
+          git add ping.txt
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: keep alive ping [skip ci]" && git push)
